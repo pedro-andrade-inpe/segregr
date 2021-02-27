@@ -147,9 +147,11 @@ measure_segregation <- function(data,
                   H = H,
                   d = dissimilarity_df,
                   h = local_entropy,
-                  P = global_iso_exp %>% filter(group_a == group_b) %>% rename(isolation = isolation_exposure),
+                  P = global_iso_exp %>% filter(group_a == group_b) %>% select(group = group_a, isolation = isolation_exposure),
                   Q = global_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure),
-                  p = local_iso_exp %>% filter(group_a == group_b) %>% rename(isolation = isolation_exposure),
+                  p = local_iso_exp %>% filter(group_a == group_b) %>% select(locality,
+                                                                              group = group_a,
+                                                                              isolation = isolation_exposure),
                   q = local_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure)
                   )
 
