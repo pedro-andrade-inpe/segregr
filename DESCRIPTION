@@ -1,11 +1,14 @@
 Package: segregR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Spatial segregation metrics in R
 Version: 0.1.0
-Author: Who wrote it
+Author: 
+    person("Marcus", "Saraiva", email = "marcus.saraiva@gmail.com", role = c("aut", "cre"))
 Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: This package makes it easy to calculate segregation metrics  in R. 
+    The metrics implemented are *generalised*, *spatial*, and *global* / *local* 
+    versions of the Dissimilarity index, and Theil's Entropy and Information 
+    Theory indices (metrics of evenness), and the Isolation and Exposure indices.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
