@@ -3,7 +3,8 @@ Type: Package
 Title: Spatial segregation metrics in R
 Version: 0.1.0
 Author: 
-    person("Marcus", "Saraiva", email = "marcus.saraiva@gmail.com", role = c("aut", "cre"))
+    person("Marcus", "Saraiva", email = "marcus.saraiva@gmail.com", role = c("aut", "cre"),
+    comment = c(ORCID = "0000-0001-6218-2338"))
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: This package makes it easy to calculate segregation metrics  in R. 
     The metrics implemented are *generalised*, *spatial*, and *global* / *local* 
