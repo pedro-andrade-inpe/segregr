@@ -3,6 +3,7 @@ library("sf")
 library("segregR")
 library("geodist")
 library("viridis")
+library("devtools")
 
 marilia_sf <- st_read(here::here("inst/extdata", "marilia_2010.gpkg")) %>%
   rename(geometry = geom)
@@ -42,4 +43,5 @@ exposure_to_sf(segregation) %>%
   scale_fill_viridis() +
   facet_grid(group_a~group_b)
 
+isolation_exposure_matrix(segregation)
 
