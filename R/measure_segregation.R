@@ -1,3 +1,14 @@
+#' Calculate segregation metrics
+#'
+#' @param data an sf
+#' @param bandwidth integer. A bandwidth, in meters, used for spatial segregation
+#' @param indices character vector. A list of indices to compute
+#'
+#' @return a list with original data and results.
+#' @export
+#'
+#' @examples
+#'
 measure_segregation <- function(data,
                                 bandwidth = 0,
                                 indices) {
