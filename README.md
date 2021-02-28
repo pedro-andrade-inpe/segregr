@@ -15,8 +15,8 @@ You can install the development version of segregR from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("remotes")
-remotes::install_github("mvpsaraiva/segregR")
+# install.packages("devtools")
+devtools::install_github("mvpsaraiva/segregR")
 ```
 
 ## Example
