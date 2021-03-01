@@ -1,11 +1,15 @@
-library("tidyverse")
+library("dplyr")
+library("ggplot")
+library("magrittr")
 library("sf")
-library("geodist")
 library("viridis")
 library("devtools")
 
-marilia_sf <- st_read(here::here("inst/extdata", "marilia_2010.gpkg")) %>%
-  rename(geometry = geom)
+
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregR"))
+
+data <- marilia_sf
+bandwidth = 0
 
 segregation <- measure_segregation(marilia_sf, bandwidth = 1000)
 

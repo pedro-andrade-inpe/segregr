@@ -1,12 +1,22 @@
 #' Calculate segregation metrics
 #'
-#' @param data an sf
-#' @param bandwidth integer. A bandwidth, in meters, used for spatial segregation
+#' @param data a spatial sf object of the study area divided into areal
+#'      units (such as census tracts), containing the columns 'id', 'geometry',
+#'      and one column per population group indicating that group's population in
+#'      the local areal unit.
+#' @param bandwidth numeric. A bandwidth, in meters, used to set the scale of
+#'     analysis for spatial segregation measurement. When set to 0, aspatial
+#'     metrics will be calculated.
 #'
-#' @return a list with original data and results.
+#' @return a SEGREG object, a list containing the input spatial data and the
+#'     results of the segregation metrics.
 #' @export
 #'
 #' @examples
+#' library(segregR)
+#'
+#'
+#'
 #'
 measure_segregation <- function(data,
                                 bandwidth = 0) {
@@ -25,21 +35,12 @@ measure_segregation <- function(data,
 
   ## sf object with areal units (census tracts) provided by the user
   areas_sf <- data %>%
-    dplyr::select(id, geometry)
+    dplyr::select(id)
 
   ## extract the centroid of each areal unit
-  locations_sf <- areas_sf %>%
-    dplyr::mutate(centroid = st_centroid(geometry)) %>%
-    dplyr::mutate(
-      lon = map_dbl(centroid, function(x) x[[1]]),
-      lat = map_dbl(centroid, function(x) x[[2]])
-    ) %>%
-    dplyr::select(id, lat, lon) %>%
-    st_set_geometry(NULL) %>%
-    dplyr::mutate(geometry = map2(lon, lat, function(x, y) st_point(c(x, y)))) %>%
-    st_as_sf()
-
-  st_crs(locations_sf) <- st_crs(data)
+  locations_sf <- suppressWarnings(
+    st_centroid(areas_sf)
+  )
 
   # 2. Calculate distances between locations ---------------------------------
 
@@ -220,6 +221,7 @@ measure_segregation <- function(data,
   results <- list(
     areal_units = areas_sf,
     groups = group_names,
+    bandwidth = bandwidth,
     D = D, # Global Dissimilarity
     E = E, # Global Entropy
     H = H, # Global H

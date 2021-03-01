@@ -7,12 +7,18 @@
 measure_segregation(data, bandwidth = 0)
 }
 \arguments{
-\item{data}{an sf}
+\item{data}{a spatial sf object of the study area divided into areal
+units (such as census tracts), containing the columns 'id', 'geometry',
+and one column per population group indicating that group's population in
+the local areal unit.}
 
-\item{bandwidth}{integer. A bandwidth, in meters, used for spatial segregation}
+\item{bandwidth}{numeric. A bandwidth, in meters, used to set the scale of
+analysis for spatial segregation measurement. When set to 0, aspatial
+metrics will be calculated.}
 }
 \value{
-a list with original data and results.
+a SEGREG object, a list containing the input spatial data and the
+    results of the segregation metrics.
 }
 \description{
 Calculate segregation metrics
