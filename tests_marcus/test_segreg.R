@@ -8,6 +8,9 @@ library("devtools")
 marilia_sf <- st_read(here::here("inst/extdata", "marilia_2010.gpkg")) %>%
   rename(geometry = geom)
 
+data <- marilia_sf
+bandwidth = 0
+
 segregation <- measure_segregation(marilia_sf, bandwidth = 1000)
 
 segregation$d

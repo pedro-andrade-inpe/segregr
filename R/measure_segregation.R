@@ -2,7 +2,6 @@
 #'
 #' @param data an sf
 #' @param bandwidth integer. A bandwidth, in meters, used for spatial segregation
-#' @param indices character vector. A list of indices to compute
 #'
 #' @return a list with original data and results.
 #' @export
@@ -10,161 +9,234 @@
 #' @examples
 #'
 measure_segregation <- function(data,
-                                bandwidth = 0,
-                                indices) {
+                                bandwidth = 0) {
 
 
-  locations_df <- data %>%
+  #' This function calculates all segregation metrics available in the
+  #' segregr package and returns them all in a list containing individual values
+  #' of global metrics and data.frames of local metrics.
+  #'
+  #' This is the main function of the package, so it's quite long. In the future,
+  #' I should break this down into smaller functions. For now, the code below
+  #' is divided into 'chapters'
+
+
+# 1. Extract geometries ----------------------------------------------------
+
+  ## sf object with areal units (census tracts) provided by the user
+  areas_sf <- data %>%
+    select(id, geometry)
+
+  ## extract the centroid of each areal unit
+  locations_sf <- areas_sf %>%
     mutate(centroid = st_centroid(geometry)) %>%
-    mutate(lon = map_dbl(centroid, function(x) x[[1]]),
-           lat = map_dbl(centroid, function(x) x[[2]])) %>%
+    mutate(
+      lon = map_dbl(centroid, function(x) x[[1]]),
+      lat = map_dbl(centroid, function(x) x[[2]])
+    ) %>%
     select(id, lat, lon) %>%
-    st_set_geometry(NULL)
+    st_set_geometry(NULL) %>%
+    mutate(geometry = map2(lon, lat, function(x, y) st_point(c(x, y)))) %>%
+    st_as_sf()
 
-  population_df <- data %>%
-    st_set_geometry(NULL)
+  st_crs(locations_sf) <- st_crs(data)
 
-  population_long_df <- population_df %>%
-    pivot_longer(-id, names_to = "group", values_to = "population")
+# 2. Calculate distances between locations ---------------------------------
 
-  # Calculate distances between locations -----------------------------------
-  distances_df <- geodist(locations_df, measure = "geodesic") %>%
+  distances_df <- st_distance(locations_sf, locations_sf) %>%
     as_tibble()
 
-  colnames(distances_df) <- locations_df$id
-  distances_df$from <- locations_df$id
+  colnames(distances_df) <- locations_sf$id
+  distances_df$from <- locations_sf$id
 
   distances_df <- distances_df %>%
-    pivot_longer(-from, names_to = "to", values_to = "distance")
+    pivot_longer(-from, names_to = "to", values_to = "distance") %>%
+    mutate(distance = as.double(distance))
 
-  ## Calculate weights - Gaussian --------------------------------------------
+# 3. Calculate Gaussian weights --------------------------------------------
+
   if (bandwidth == 0) {
     distances_df <- distances_df %>%
       mutate(weight = if_else(distance == 0, 1, 0))
   } else {
     distances_df <- distances_df %>%
-      mutate(weight = exp((-0.5) * (distance/bandwidth) * (distance/bandwidth)))
+      mutate(weight = exp((-0.5) * (distance / bandwidth) * (distance / bandwidth)))
   }
 
-  locations_matrix <- expand.grid(from = locations_df$id, to = locations_df$id)
+# 4. Extract population ----------------------------------------------------
 
-  distance_matrix <- locations_matrix %>%
-    left_join(population_long_df, by = c("from"="id")) %>%
-    left_join(population_long_df, by = c("to"="id"), suffix = c(".from", ".to") ) %>%
-    left_join(distances_df, by=c("from", "to"))
+  ## data.frame with the population in the study area, per group
+  population_df <- data %>%
+    st_set_geometry(NULL)
 
-  intensity_df <- distance_matrix %>%
-    filter(group.from == group.to) %>%
-    group_by(from, group.from) %>%
-    summarise(population = mean(population.from),
-              population_intensity = weighted.mean(population.to, weight), .groups = "drop") %>%
-    rename(group = group.from)
+  ## use the order of the columns in the input data to order group names as factors
+  group_names <- colnames(population_df)
+  group_names <- group_names[group_names != 'id']
 
-  localities_df <- distance_matrix %>%
-    filter(group.from == group.to) %>%
-    group_by(from, to) %>%
-    summarise(population.from = sum(population.from),
-              population.to = sum(population.to),
-              distance = mean(distance),
-              weight = mean(weight), .groups = "drop") %>%
-    group_by(from) %>%
-    summarise(population = mean(population.from),
-              population_intensity = weighted.mean(population.to, weight), .groups = "drop") %>%
-    filter(population > 0)
+  ## convert population data.frame to long form, using group_names as factors for group column
+  population_long_df <- population_df %>%
+    pivot_longer(-id, names_to = "group", values_to = "population") %>%
+    mutate(group = factor(group, levels = group_names))
 
-  # Dissimilarity Index -----------------------------------------------------
-  I <- intensity_df %>%
-    group_by(group) %>%
-    summarise(population = sum(population), .groups = "drop") %>%
-    mutate(proportion = population / sum(population),
-           inv_proportion = 1 - proportion,
-           I = proportion * inv_proportion) %>%
-    summarise(I = sum(I)) %>%
-    .[[1]]
+  ## N = Total population of the study area ----
+  N <- sum(population_long_df$population)
 
-  N <- sum(localities_df$population)
-
-  groups_df <- population_long_df %>%
+  ## Total population and proportion per group in the study area ----
+  group_population_df <- population_long_df %>%
     group_by(group) %>%
     summarise(total_population = sum(population), .groups = "drop") %>%
     mutate(group_proportion_city = total_population / sum(total_population))
 
-  dissimilarity_df <- intensity_df %>%
-    filter(population > 0) %>%
+# 5. Calculate Population Intensity ----------------------------------------
+
+  distance_matrix <- expand.grid(from = locations_sf$id, to = locations_sf$id, group = group_names) %>%
+      left_join(population_long_df, by = c("from" = "id", "group")) %>%
+      left_join(population_long_df, by = c("to" = "id", "group"), suffix = c(".from", ".to")) %>%
+      left_join(distances_df, by = c("from", "to"))
+
+  ## Calculate population intensity per group and locality
+  intensity_df <- distance_matrix %>%
+    group_by(from, group) %>%
+    summarise(
+      population = mean(population.from),
+      population_intensity = weighted.mean(population.to, weight), .groups = "drop"
+    ) %>%
+    rename(id = from)
+
+  ## Calculate population intensity per locality
+  localities_df <- distance_matrix %>%
+    group_by(from, to) %>%
+    summarise(
+      population.from = sum(population.from),
+      population.to = sum(population.to),
+      distance = mean(distance),
+      weight = mean(weight), .groups = "drop"
+    ) %>%
     group_by(from) %>%
-    mutate(population_locality = sum(population),
-           group_proportion_locality = population_intensity / sum(population_intensity)) %>%
-    left_join(groups_df, by = "group") %>%
+    summarise(
+      population = mean(population.from),
+      population_intensity = weighted.mean(population.to, weight), .groups = "drop"
+    ) %>%
+    filter(population > 0) %>%
+    rename(id = from)
+
+
+# 6. Calculate Segregation Indices -----------------------------------------
+
+  ## Dissimilarity Index ---------------------------------------------------
+
+  ### I = Interaction Index, used in the Dissimilarity Index equation ----
+  I <- intensity_df %>%
+    group_by(group) %>%
+    summarise(population = sum(population), .groups = "drop") %>%
+    mutate(
+      proportion = population / sum(population),
+      inv_proportion = 1 - proportion,
+      I = proportion * inv_proportion
+    ) %>%
+    summarise(I = sum(I)) %>%
+    .[[1]]
+
+
+  ### Local Dissimilarity (d) ----
+  local_dissimilarity_df <- intensity_df %>%
+    filter(population > 0) %>%
+    group_by(id) %>%
+    mutate(
+      population_locality = sum(population),
+      group_proportion_locality = population_intensity / sum(population_intensity)
+    ) %>%
+    left_join(group_population_df, by = "group") %>%
     mutate(proportion_abs_diff = abs(group_proportion_locality - group_proportion_city)) %>%
     mutate(dm = (population_locality / (2 * N * I)) * proportion_abs_diff) %>%
     summarise(d = sum(dm), .groups = "drop")
 
-  D <- sum(dissimilarity_df$d)
+  ### Global Dissimilarity (D) ----
+  D <- sum(local_dissimilarity_df$d)
 
-  # Entropy
-  global_entropy <- groups_df %>%
+
+  ## Information Theory Indices (Entropy and H) ----------------------------
+
+  ### Global Entropy (E) ----
+  E <- group_population_df %>%
     mutate(group_entropy = group_proportion_city * log(1 / group_proportion_city)) %>%
     summarise(entropy = sum(group_entropy), .groups = "drop") %>%
     .[[1]]
 
-  local_entropy <- intensity_df %>%
+  ### Local Entropy (e) ----
+  local_entropy_df <- intensity_df %>%
     filter(population_intensity > 0) %>%
-    group_by(from) %>%
+    group_by(id) %>%
     mutate(proportion = population_intensity / sum(population_intensity)) %>%
     mutate(group_entropy = proportion * log(1 / proportion)) %>%
-    summarise(population = sum(population),
-              local_entropy = sum(group_entropy), .groups = "drop")
+    summarise(
+      population = sum(population),
+      e = sum(group_entropy), .groups = "drop"
+    )
 
-  # H index
-  local_entropy <- local_entropy %>%
-    mutate(local_h = (population * (global_entropy - local_entropy)) / (global_entropy * N))
+  ### Local H Index (h) ----
+  local_entropy_df <- local_entropy_df %>%
+    mutate(h = (population * (E - e)) / (E * N))
 
-  H <- sum(local_entropy$local_h)
+  ### Global H Index (H)
+  H <- sum(local_entropy$h)
 
-  # Isolation / Exposure
+
+  ## Exposure and Isolation Indices (P and Q) ------------------------------
   iso_exp_df <- intensity_df %>%
     # filter(population > 0) %>%
     group_by(group) %>%
     mutate(population_group_city = sum(population)) %>%
-    inner_join(localities_df, by = "from", suffix = c("", "_locality")) %>%
-    mutate(proportion_group_city = population / population_group_city,
-           proportion_group_locality = population_intensity / population_intensity_locality) %>%
-    select(from, group, proportion_group_city, proportion_group_locality) %>%
+    inner_join(localities_df, by = "id", suffix = c("", "_locality")) %>%
+    mutate(
+      proportion_group_city = population / population_group_city,
+      proportion_group_locality = population_intensity / population_intensity_locality
+    ) %>%
+    select(id, group, proportion_group_city, proportion_group_locality) %>%
     ungroup()
 
-  iso_exp_df %>%
-    mutate(isolation = proportion_group_city * proportion_group_locality) %>%
-    group_by(group) %>%
-    summarise(global_isolation = sum(isolation), .groups = "drop")
+  iso_exp_matrix <- expand.grid(
+    id = locations_sf$id,
+    group_a = group_names,
+    group_b = group_names
+  )
 
-  iso_exp_matrix <- expand.grid(locality = locations_df$id,
-                                group_a = groups_df$group,
-                                group_b = groups_df$group)
-
+  ### Local Exposure and Isolation
   local_iso_exp <- iso_exp_matrix %>%
-    left_join(iso_exp_df, by = c("locality"="from", "group_a"="group")) %>%
-    left_join(iso_exp_df, by = c("locality"="from", "group_b"="group"), suffix = c("_a", "_b")) %>%
+    left_join(iso_exp_df, by = c("id", "group_a" = "group")) %>%
+    left_join(iso_exp_df, by = c("id", "group_b" = "group"), suffix = c("_a", "_b")) %>%
     mutate(isolation_exposure = proportion_group_city_a * proportion_group_locality_b) %>%
     drop_na() %>%
-    select(locality, group_a, group_b, isolation_exposure)
+    select(id, group_a, group_b, isolation_exposure)
 
+  ### Global Exposure and Isolation
   global_iso_exp <- local_iso_exp %>%
     group_by(group_a, group_b) %>%
     summarise(isolation_exposure = sum(isolation_exposure), .groups = "drop")
 
-  results <- list(data = data,
-                  D = D,
-                  E = global_entropy,
-                  H = H,
-                  d = dissimilarity_df,
-                  h = local_entropy,
-                  P = global_iso_exp %>% filter(group_a == group_b) %>% select(group = group_a, isolation = isolation_exposure),
-                  Q = global_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure),
-                  p = local_iso_exp %>% filter(group_a == group_b) %>% select(locality,
-                                                                              group = group_a,
-                                                                              isolation = isolation_exposure),
-                  q = local_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure)
-                  )
+
+# 7. Return results --------------------------------------------------------
+
+  results <- list(
+    areal_units = areas_sf,
+    groups = group_names,
+    D = D, # Global Dissimilarity
+    E = E, # Global Entropy
+    H = H, # Global H
+    d = local_dissimilarity_df,
+    h = local_entropy_df,
+    # Global Exposure
+    P = global_iso_exp %>% filter(group_a != group_b) %>% rename(q = isolation_exposure),
+    # Global Isolation
+    Q = global_iso_exp %>% filter(group_a == group_b) %>% select(group = group_a, p = isolation_exposure),
+    # Local Exposure
+    p = local_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure),
+    # Local Isolation
+    q = local_iso_exp %>% filter(group_a == group_b) %>% select(id,
+                                                                group = group_a,
+                                                                isolation = isolation_exposure
+    )
+  )
 
   return(results)
 }
