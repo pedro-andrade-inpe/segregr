@@ -1,4 +1,4 @@
 library(testthat)
-library(segregR)
+library(segregr)
 
-test_check("segregR")
+test_check("segregr")

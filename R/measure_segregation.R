@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @examples
-#' library(segregR)
+#' library(segregr)
 #'
 #'
 #'

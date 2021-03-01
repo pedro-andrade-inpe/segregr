@@ -6,7 +6,7 @@ library("viridis")
 library("devtools")
 
 
-marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregR"))
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
 data <- marilia_sf
 bandwidth = 0

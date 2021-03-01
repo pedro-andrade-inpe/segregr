@@ -13,28 +13,28 @@ knitr::opts_chunk$set(
 )
 ```
 
-# segregR
+# segregr
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of segregR is to provide and easy way of calculating spatial segregation
+The goal of segregr is to provide and easy way of calculating spatial segregation
 metrics in R.
 
 ## Installation
 
-You can install the development version of segregR from [GitHub](https://github.com/) with:
+You can install the development version of segregr from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("mvpsaraiva/segregR")
+devtools::install_github("mvpsaraiva/segregr")
 ```
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
 
 ```{r example}
-library(segregR)
+library(segregr)
 
 ## basic example code
 ```

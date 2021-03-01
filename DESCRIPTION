@@ -1,4 +1,4 @@
-Package: segregR
+Package: segregr
 Type: Package
 Title: Spatial segregation metrics in R
 Version: 0.1.0
