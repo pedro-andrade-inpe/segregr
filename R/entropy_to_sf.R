@@ -1,8 +1,8 @@
 entropy_to_sf <- function(segregation_results) {
   return(
-    segregation_results$data %>%
+    segregation_results$areal_units %>%
       select(id, geometry) %>%
-      left_join(segregation_results$h, by = c("id" = "from")) %>%
-      select(id, entropy = local_entropy, geometry)
+      left_join(segregation_results$h, by = c("id")) %>%
+      select(id, entropy = e, geometry)
   )
 }

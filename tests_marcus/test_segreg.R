@@ -1,6 +1,5 @@
 library("tidyverse")
 library("sf")
-library("segregR")
 library("geodist")
 library("viridis")
 library("devtools")
@@ -8,13 +7,9 @@ library("devtools")
 marilia_sf <- st_read(here::here("inst/extdata", "marilia_2010.gpkg")) %>%
   rename(geometry = geom)
 
-data <- marilia_sf
-bandwidth = 0
-
 segregation <- measure_segregation(marilia_sf, bandwidth = 1000)
 
 segregation$d
-
 segregation_results <- segregation
 
 dissimilarity_to_sf(segregation) %>%
@@ -36,15 +31,15 @@ isolation_to_sf(segregation) %>%
   ggplot() +
   geom_sf(aes(fill = isolation), colour = NA) +
   scale_fill_viridis() +
-  facet_wrap(~group)
+  facet_wrap(~group) +
+  theme_void()
 
 exposure_to_sf(segregation) %>%
-  filter(group_a %in% c("mw_05_to_1", "mw_20_above"),
-         group_b %in% c("mw_05_to_1", "mw_20_above")) %>%
   ggplot() +
   geom_sf(aes(fill = exposure), colour = NA) +
   scale_fill_viridis() +
-  facet_grid(group_a~group_b)
+  facet_grid(group_a~group_b) +
+  theme_void()
 
 isolation_exposure_matrix(segregation)
 

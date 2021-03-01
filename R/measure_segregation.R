@@ -179,7 +179,7 @@ measure_segregation <- function(data,
     mutate(h = (population * (E - e)) / (E * N))
 
   ### Global H Index (H)
-  H <- sum(local_entropy$h)
+  H <- sum(local_entropy_df$h)
 
 
   ## Exposure and Isolation Indices (P and Q) ------------------------------
@@ -226,9 +226,9 @@ measure_segregation <- function(data,
     d = local_dissimilarity_df,
     h = local_entropy_df,
     # Global Exposure
-    P = global_iso_exp %>% filter(group_a != group_b) %>% rename(q = isolation_exposure),
+    P = global_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure),
     # Global Isolation
-    Q = global_iso_exp %>% filter(group_a == group_b) %>% select(group = group_a, p = isolation_exposure),
+    Q = global_iso_exp %>% filter(group_a == group_b) %>% select(group = group_a, isolation = isolation_exposure),
     # Local Exposure
     p = local_iso_exp %>% filter(group_a != group_b) %>% rename(exposure = isolation_exposure),
     # Local Isolation

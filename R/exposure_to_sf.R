@@ -1,7 +1,7 @@
 exposure_to_sf <- function(segregation_results) {
   return(
-    segregation_results$data %>%
+    segregation_results$areal_units %>%
       select(id, geometry) %>%
-      left_join(segregation_results$q, by = c("id" = "locality"))
+      inner_join(segregation_results$p, by = c("id"))
   )
 }

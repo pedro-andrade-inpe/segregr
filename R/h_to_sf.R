@@ -1,8 +1,8 @@
 h_to_sf <- function(segregation_results) {
   return(
-    segregation_results$data %>%
+    segregation_results$areal_units %>%
       select(id, geometry) %>%
-      left_join(segregation_results$h, by = c("id" = "from")) %>%
-      select(id, h = local_h, geometry)
+      left_join(segregation_results$h, by = c("id")) %>%
+      select(id, h, geometry)
   )
 }
