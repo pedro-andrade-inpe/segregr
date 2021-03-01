@@ -24,9 +24,10 @@ devtools::install_github("mvpsaraiva/segregr")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
+library(sf)
+#> Linking to GEOS 3.8.1, GDAL 3.1.1, PROJ 6.3.1
 library(segregr)
 #> Loading required namespace: tidyverse
-#> Loading required namespace: sf
 #> Loading required namespace: geodist
 
 ## basic example code
