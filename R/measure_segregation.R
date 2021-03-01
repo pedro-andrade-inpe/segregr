@@ -21,7 +21,7 @@ measure_segregation <- function(data,
   #' is divided into 'chapters'
 
 
-# 1. Extract geometries ----------------------------------------------------
+  # 1. Extract geometries ----------------------------------------------------
 
   ## sf object with areal units (census tracts) provided by the user
   areas_sf <- data %>%
@@ -41,7 +41,7 @@ measure_segregation <- function(data,
 
   st_crs(locations_sf) <- st_crs(data)
 
-# 2. Calculate distances between locations ---------------------------------
+  # 2. Calculate distances between locations ---------------------------------
 
   distances_df <- st_distance(locations_sf, locations_sf) %>%
     as_tibble()
@@ -53,7 +53,7 @@ measure_segregation <- function(data,
     pivot_longer(-from, names_to = "to", values_to = "distance") %>%
     dplyr::mutate(distance = as.double(distance))
 
-# 3. Calculate Gaussian weights --------------------------------------------
+  # 3. Calculate Gaussian weights --------------------------------------------
 
   if (bandwidth == 0) {
     distances_df <- distances_df %>%
@@ -63,7 +63,7 @@ measure_segregation <- function(data,
       dplyr::mutate(weight = exp((-0.5) * (distance / bandwidth) * (distance / bandwidth)))
   }
 
-# 4. Extract population ----------------------------------------------------
+  # 4. Extract population ----------------------------------------------------
 
   ## data.frame with the population in the study area, per group
   population_df <- data %>%
@@ -71,7 +71,7 @@ measure_segregation <- function(data,
 
   ## use the order of the columns in the input data to order group names as factors
   group_names <- colnames(population_df)
-  group_names <- group_names[group_names != 'id']
+  group_names <- group_names[group_names != "id"]
 
   ## convert population data.frame to long form, using group_names as factors for group column
   population_long_df <- population_df %>%
@@ -87,12 +87,12 @@ measure_segregation <- function(data,
     dplyr::summarise(total_population = sum(population), .groups = "drop") %>%
     dplyr::mutate(group_proportion_city = total_population / sum(total_population))
 
-# 5. Calculate Population Intensity ----------------------------------------
+  # 5. Calculate Population Intensity ----------------------------------------
 
   distance_matrix <- expand.grid(from = locations_sf$id, to = locations_sf$id, group = group_names) %>%
-      dplyr::left_join(population_long_df, by = c("from" = "id", "group")) %>%
-      dplyr::left_join(population_long_df, by = c("to" = "id", "group"), suffix = c(".from", ".to")) %>%
-      dplyr::left_join(distances_df, by = c("from", "to"))
+    dplyr::left_join(population_long_df, by = c("from" = "id", "group")) %>%
+    dplyr::left_join(population_long_df, by = c("to" = "id", "group"), suffix = c(".from", ".to")) %>%
+    dplyr::left_join(distances_df, by = c("from", "to"))
 
   ## Calculate population intensity per group and locality
   intensity_df <- distance_matrix %>%
@@ -121,7 +121,7 @@ measure_segregation <- function(data,
     dplyr::rename(id = from)
 
 
-# 6. Calculate Segregation Indices -----------------------------------------
+  # 6. Calculate Segregation Indices -----------------------------------------
 
   ## Dissimilarity Index ---------------------------------------------------
 
@@ -215,7 +215,7 @@ measure_segregation <- function(data,
     dplyr::summarise(isolation_exposure = sum(isolation_exposure), .groups = "drop")
 
 
-# 7. Return results --------------------------------------------------------
+  # 7. Return results --------------------------------------------------------
 
   results <- list(
     areal_units = areas_sf,
@@ -233,8 +233,8 @@ measure_segregation <- function(data,
     p = local_iso_exp %>% dplyr::filter(group_a != group_b) %>% dplyr::rename(exposure = isolation_exposure),
     # Local Isolation
     q = local_iso_exp %>% dplyr::filter(group_a == group_b) %>% dplyr::select(id,
-                                                                group = group_a,
-                                                                isolation = isolation_exposure
+      group = group_a,
+      isolation = isolation_exposure
     )
   )
 
