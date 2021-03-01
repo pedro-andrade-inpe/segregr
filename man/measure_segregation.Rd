@@ -4,21 +4,16 @@
 \alias{measure_segregation}
 \title{Calculate segregation metrics}
 \usage{
-measure_segregation(data, bandwidth = 0, indices)
+measure_segregation(data, bandwidth = 0)
 }
 \arguments{
 \item{data}{an sf}
 
 \item{bandwidth}{integer. A bandwidth, in meters, used for spatial segregation}
-
-\item{indices}{character vector. A list of indices to compute}
 }
 \value{
 a list with original data and results.
 }
 \description{
 Calculate segregation metrics
-}
-\examples{
-
 }
