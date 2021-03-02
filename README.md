@@ -27,8 +27,30 @@ This is a basic example which shows you how to solve a common problem:
 library(sf)
 #> Linking to GEOS 3.8.1, GDAL 3.1.1, PROJ 6.3.1
 library(segregr)
-#> Loading required namespace: tidyverse
-#> Loading required namespace: geodist
 
-## basic example code
+# load sample data from package segregr
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+#> Reading layer `marilia_2010_proj' from data source `/private/var/folders/p_/v724hrfn46v1sxqm4xtxfv580000gn/T/RtmpvtT7ph/temp_libpath56fe6c416f9c/segregr/extdata/marilia_2010.gpkg' using driver `GPKG'
+#> Simple feature collection with 295 features and 10 fields
+#> geometry type:  POLYGON
+#> dimension:      XY
+#> bbox:           xmin: 597725.2 ymin: 7535553 xmax: 612714.8 ymax: 7551388
+#> projected CRS:  SIRGAS 2000 / UTM zone 22S
+
+# calculate segregation metrics
+segregation <- measure_segregation(marilia_sf)
+```
+
+``` r
+# global dissimilarity index
+segregation$D
+#> [1] 0.2565095
+
+#' # global entropy
+segregation$E
+#> [1] 1.733732
+
+# global information theory index H
+segregation$H
+#> [1] 0.110396
 ```

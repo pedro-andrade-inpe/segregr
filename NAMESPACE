@@ -2,8 +2,8 @@
 
 export(dissimilarity_to_sf)
 export(entropy_to_sf)
+export(exposure_isolation_matrix)
 export(exposure_to_sf)
 export(h_to_sf)
-export(isolation_exposure_matrix)
 export(isolation_to_sf)
 export(measure_segregation)

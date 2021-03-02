@@ -37,6 +37,21 @@ This is a basic example which shows you how to solve a common problem:
 library(sf)
 library(segregr)
 
-## basic example code
+# load sample data from package segregr
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+
+# calculate segregation metrics
+segregation <- measure_segregation(marilia_sf)
+```
+
+```{r}
+# global dissimilarity index
+segregation$D
+
+#' # global entropy
+segregation$E
+
+# global information theory index H
+segregation$H
 ```
 

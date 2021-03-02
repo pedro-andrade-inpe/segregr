@@ -2,17 +2,40 @@
 % Please edit documentation in R/isolation_to_sf.R
 \name{isolation_to_sf}
 \alias{isolation_to_sf}
-\title{Title}
+\title{Convert local isolation results to SF}
 \usage{
 isolation_to_sf(segregation_results)
 }
 \arguments{
-\item{segregation_results}{a SEGREG object containing the results of a
+\item{segregation_results}{a segreg object containing the results of a
 call to measure_segregation().}
 }
 \value{
 a spatial sf object with local isolation results
 }
 \description{
-Title
+Convert local isolation results to SF
+}
+\examples{
+
+library("sf")
+library("ggplot2")
+library("segregr")
+
+# load sample data from package segregr
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+
+# calculate segregation metrics
+segregation <- measure_segregation(marilia_sf)
+
+# export local isolation results
+isolation <- isolation_to_sf(segregation)
+
+# plot local isolation
+ggplot(data = isolation) +
+  geom_sf(aes(fill = isolation)) +
+  scale_fill_distiller(palette = "Spectral") +
+  facet_wrap(~group) +
+  theme_void()
+
 }

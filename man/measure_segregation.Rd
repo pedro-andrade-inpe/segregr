@@ -17,9 +17,30 @@ analysis for spatial segregation measurement. When set to 0, aspatial
 metrics will be calculated.}
 }
 \value{
-a SEGREG object, a list containing the input spatial data and the
+a segreg object, a list containing the input spatial data and the
     results of the segregation metrics.
 }
 \description{
 Calculate segregation metrics
+}
+\examples{
+
+library(sf)
+library(segregr)
+
+# load sample data from package segregr
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+
+# calculate segregation metrics
+segregation <- measure_segregation(marilia_sf)
+
+# global dissimilarity index
+segregation$D
+
+# global entropy
+segregation$E
+
+# global information theory index H
+segregation$H
+
 }

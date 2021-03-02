@@ -8,27 +8,43 @@
 #'     analysis for spatial segregation measurement. When set to 0, aspatial
 #'     metrics will be calculated.
 #'
-#' @return a SEGREG object, a list containing the input spatial data and the
+#' @return a segreg object, a list containing the input spatial data and the
 #'     results of the segregation metrics.
+#'
 #' @export
 #'
 #' @examples
+#'
+#' library(sf)
 #' library(segregr)
 #'
+#' # load sample data from package segregr
+#' marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 #'
+#' # calculate segregation metrics
+#' segregation <- measure_segregation(marilia_sf)
 #'
+#' # global dissimilarity index
+#' segregation$D
 #'
+#' # global entropy
+#' segregation$E
+#'
+#' # global information theory index H
+#' segregation$H
+#'
+
 measure_segregation <- function(data,
                                 bandwidth = 0) {
 
 
-  #' This function calculates all segregation metrics available in the
-  #' segregr package and returns them all in a list containing individual values
-  #' of global metrics and data.frames of local metrics.
-  #'
-  #' This is the main function of the package, so it's quite long. In the future,
-  #' I should break this down into smaller functions. For now, the code below
-  #' is divided into 'chapters'
+  # This function calculates all segregation metrics available in the
+  # segregr package and returns them all in a list containing individual values
+  # of global metrics and data.frames of local metrics.
+  #
+  # This is the main function of the package, so it's quite long. In the future,
+  # I should break this down into smaller functions. For now, the code below
+  # is divided into 'chapters'
 
 
   # 1. Extract geometries ----------------------------------------------------
@@ -45,20 +61,20 @@ measure_segregation <- function(data,
   # 2. Calculate distances between locations ---------------------------------
 
   distances_df <- st_distance(locations_sf, locations_sf) %>%
-    as_tibble()
+    tibble::as_tibble()
 
   colnames(distances_df) <- locations_sf$id
   distances_df$from <- locations_sf$id
 
   distances_df <- distances_df %>%
-    pivot_longer(-from, names_to = "to", values_to = "distance") %>%
+    tidyr::pivot_longer(-from, names_to = "to", values_to = "distance") %>%
     dplyr::mutate(distance = as.double(distance))
 
   # 3. Calculate Gaussian weights --------------------------------------------
 
   if (bandwidth == 0) {
     distances_df <- distances_df %>%
-      dplyr::mutate(weight = if_else(distance == 0, 1, 0))
+      dplyr::mutate(weight = dplyr::if_else(distance == 0, 1, 0))
   } else {
     distances_df <- distances_df %>%
       dplyr::mutate(weight = exp((-0.5) * (distance / bandwidth) * (distance / bandwidth)))
@@ -76,7 +92,7 @@ measure_segregation <- function(data,
 
   ## convert population data.frame to long form, using group_names as factors for group column
   population_long_df <- population_df %>%
-    pivot_longer(-id, names_to = "group", values_to = "population") %>%
+    tidyr::pivot_longer(-id, names_to = "group", values_to = "population") %>%
     dplyr::mutate(group = factor(group, levels = group_names))
 
   ## N = Total population of the study area ----
@@ -188,13 +204,13 @@ measure_segregation <- function(data,
     # dplyr::filter(population > 0) %>%
     dplyr::group_by(group) %>%
     dplyr::mutate(population_group_city = sum(population)) %>%
-    inner_join(localities_df, by = "id", suffix = c("", "_locality")) %>%
+    dplyr::inner_join(localities_df, by = "id", suffix = c("", "_locality")) %>%
     dplyr::mutate(
       proportion_group_city = population / population_group_city,
       proportion_group_locality = population_intensity / population_intensity_locality
     ) %>%
     dplyr::select(id, group, proportion_group_city, proportion_group_locality) %>%
-    ungroup()
+    dplyr::ungroup()
 
   iso_exp_matrix <- expand.grid(
     id = locations_sf$id,
@@ -207,7 +223,7 @@ measure_segregation <- function(data,
     dplyr::left_join(iso_exp_df, by = c("id", "group_a" = "group")) %>%
     dplyr::left_join(iso_exp_df, by = c("id", "group_b" = "group"), suffix = c("_a", "_b")) %>%
     dplyr::mutate(isolation_exposure = proportion_group_city_a * proportion_group_locality_b) %>%
-    drop_na() %>%
+    tidyr::drop_na() %>%
     dplyr::select(id, group_a, group_b, isolation_exposure)
 
   ### Global Exposure and Isolation

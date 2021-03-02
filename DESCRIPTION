@@ -1,7 +1,7 @@
 Package: segregr
 Type: Package
 Title: Spatial segregation metrics in R
-Version: 0.1.0
+Version: 0.0.0.9000
 Author: 
     person("Marcus", "Saraiva", email = "marcus.saraiva@gmail.com", role = c("aut", "cre"),
     comment = c(ORCID = "0000-0001-6218-2338"))
@@ -19,6 +19,7 @@ Suggests:
 Imports: 
     sf,
     dplyr,
+    tidyr,
     magrittr,
     purrr,
     tibble

@@ -2,17 +2,38 @@
 % Please edit documentation in R/dissimilarity_to_sf.R
 \name{dissimilarity_to_sf}
 \alias{dissimilarity_to_sf}
-\title{Title}
+\title{Convert local dissimilarity results to SF}
 \usage{
 dissimilarity_to_sf(segregation_results)
 }
 \arguments{
-\item{segregation_results}{a SEGREG object containing the results of a
+\item{segregation_results}{a segreg object containing the results of a
 call to measure_segregation().}
 }
 \value{
 a spatial sf object with local dissimilarity results
 }
 \description{
-Title
+Convert local dissimilarity results to SF
+}
+\examples{
+
+library("sf")
+library("ggplot2")
+library("segregr")
+
+# load sample data from package segregr
+marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+
+# calculate segregation metrics
+segregation <- measure_segregation(marilia_sf)
+
+# export local dissimilarity results
+dissimilarity <- dissimilarity_to_sf(segregation)
+
+# plot local dissimilarity
+ggplot(data = dissimilarity) +
+  geom_sf(aes(fill = dissimilarity)) +
+  scale_fill_distiller(palette = "Spectral")
+
 }
