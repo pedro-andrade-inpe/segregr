@@ -22,4 +22,5 @@ Imports:
     tidyr,
     magrittr,
     purrr,
-    tibble
+    tibble,
+    data.table

@@ -4,15 +4,29 @@ library("magrittr")
 library("sf")
 library("viridis")
 library("devtools")
-
+library("data.table")
 library("sf")
 library("segregr")
+library("tidyverse")
+library("geobr")
+
+gla_sf <- st_read(here::here("inst/extdata/gla.gpkg"))
+system.time(segregation <- measure_segregation(gla_sf, bandwidth = 2000))
+# com data.table =  4.093 segundos
+# sem data.table = 36.683 segundos
 
 # load sample data from package segregr
 marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
+data <- marilia_sf
+bandwidth <- 0
+
 # calculate segregation metrics
-segregation <- measure_segregation(marilia_sf)
+system.time(segregation <- measure_segregation(marilia_sf))
+
+## dplyr version of measure_segregation: 3.824 seconds
+## data.table version .................:
+
 
 # global dissimilarity index
 segregation$D
@@ -28,7 +42,7 @@ segregation$H
 data <- marilia_sf
 bandwidth = 0
 
-segregation <- measure_segregation(marilia_sf, bandwidth = 1000)
+segregation <- measure_segregation(marilia_sf, bandwidth = 0)
 
 segregation$d
 segregation_results <- segregation
@@ -48,7 +62,7 @@ entropy_to_sf(segregation) %>%
   geom_sf(aes(fill = entropy)) +
   scale_fill_viridis()
 
-isolation_to_sf(segregation) %>%
+isolation_to_sf(segregation) %>% filter(group == "Black") %>%
   ggplot() +
   geom_sf(aes(fill = isolation), colour = NA) +
   scale_fill_viridis() +
@@ -62,5 +76,14 @@ exposure_to_sf(segregation) %>%
   facet_grid(group_a~group_b) +
   theme_void()
 
-isolation_exposure_matrix(segregation)
+exposure_isolation_matrix(segregation)
+
+poa <- geobr::lookup_muni("Porto Alegre")
+
+poa
+
+poa_census <- geobr::read_census_tract(code_tract = 43)
+
+
+
 

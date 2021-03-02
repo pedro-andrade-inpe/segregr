@@ -34,6 +34,6 @@ isolation_to_sf <- function(segregation_results) {
   return(
     segregation_results$areal_units %>%
       dplyr::select(id) %>%
-      dplyr::inner_join(segregation_results$q, by = c("id"))
+      dplyr::left_join(segregation_results$q, by = c("id"))
   )
 }
