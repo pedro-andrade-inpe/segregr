@@ -26,11 +26,15 @@
 #' ggplot(data = dissimilarity) +
 #'   geom_sf(aes(fill = dissimilarity)) +
 #'   scale_fill_distiller(palette = "Spectral")
-dissimilarity_to_sf <- function(segregation_results) {
-  return(
-    segregation_results$areal_units %>%
-      dplyr::select(id) %>%
-      dplyr::left_join(segregation_results$d, by = c("id")) %>%
-      dplyr::rename(dissimilarity = d)
-  )
+dissimilarity_to_sf <- function(segregation_results, bandwidths = c()) {
+
+  result <- segregation_results$areal_units %>%
+    dplyr::left_join(segregation_results$d, by = c("id")) %>%
+    dplyr::select(id, bw, dissimilarity = d)
+
+  if (length(bandwidths) != 0) {
+    result <- filter(result, bw %in% bandwidths)
+  }
+
+  return(result)
 }

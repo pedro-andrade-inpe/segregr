@@ -26,11 +26,15 @@
 #' ggplot(data = entropy) +
 #'   geom_sf(aes(fill = entropy)) +
 #'   scale_fill_distiller(palette = "Spectral")
-entropy_to_sf <- function(segregation_results) {
-  return(
-    segregation_results$areal_units %>%
-      dplyr::select(id) %>%
-      dplyr::left_join(segregation_results$h, by = c("id")) %>%
-      dplyr::select(id, entropy = e)
-  )
+entropy_to_sf <- function(segregation_results, bandwidths = c()) {
+
+  result <- segregation_results$areal_units %>%
+    dplyr::left_join(segregation_results$h, by = c("id")) %>%
+    dplyr::select(id, bw, entropy = e)
+
+  if (length(bandwidths) != 0) {
+    result <- filter(result, bw %in% bandwidths)
+  }
+
+  return(result)
 }

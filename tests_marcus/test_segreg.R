@@ -52,17 +52,20 @@ segregation_results <- segregation
 dissimilarity_to_sf(segregation) %>%
   ggplot() +
   geom_sf(aes(fill = dissimilarity)) +
-  scale_fill_distiller(palette = "Spectral")
+  scale_fill_distiller(palette = "Spectral") +
+  facet_wrap(~bw)
 
 h_to_sf(segregation) %>%
   ggplot() +
   geom_sf(aes(fill = h)) +
-  scale_fill_viridis(direction = -1)
+  scale_fill_viridis(direction = -1) +
+  facet_wrap(~bw)
 
 entropy_to_sf(segregation) %>%
   ggplot() +
   geom_sf(aes(fill = entropy)) +
-  scale_fill_viridis()
+  scale_fill_viridis() +
+  facet_wrap(~bw)
 
 isolation_to_sf(segregation) %>% filter(group == "Black") %>%
   ggplot() +
