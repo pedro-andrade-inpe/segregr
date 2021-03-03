@@ -29,13 +29,15 @@ system.time(segregation <- measure_segregation(marilia_sf, bandwidths = c(0, 500
 
 
 # global dissimilarity index
-segregation$D
+segregation$D %>%
+  ggplot(aes(x=bw, y=D)) + geom_path() + geom_point()
 
 # global entropy
 segregation$E
 
 # global information theory index (Theil's H)
-segregation$H
+segregation$H %>%
+  ggplot(aes(x=bw, y=H)) + geom_path() + geom_point()
 
 
 

@@ -61,7 +61,7 @@ measure_segregation <- function(data,
       sf::st_coordinates()
   )
 
-  # 4. Extract population ----------------------------------------------------
+  # 2. Extract population ----------------------------------------------------
 
   ## data.frame with the population in the study area, per group
   population_df <- st_set_geometry(data, NULL)
@@ -87,10 +87,10 @@ measure_segregation <- function(data,
   group_population_df <- population_long_df[, .(total_population = sum(population)), by = group]
   group_population_df[, group_proportion_city := total_population / sum(total_population)]
 
-  # 2. Calculate distances between locations ---------------------------------
+  # 3. Calculate distances between locations ---------------------------------
   distances_df <- calculate_distances(locations_sf, "sf")
 
-  # 3. Calculate Gaussian weights by bandwidth -----------------------------
+  # 4. Calculate Gaussian weights by bandwidth -----------------------------
   weights_df <- calculate_gaussian_weights(distances_df, bandwidths)
 
 
