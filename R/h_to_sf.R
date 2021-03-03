@@ -26,8 +26,6 @@
 #' ggplot(data = index_h) +
 #'   geom_sf(aes(fill = h)) +
 #'   scale_fill_distiller(palette = "Spectral")
-#'
-
 h_to_sf <- function(segregation_results) {
   return(
     segregation_results$areal_units %>%

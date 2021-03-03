@@ -26,8 +26,6 @@
 #' ggplot(data = dissimilarity) +
 #'   geom_sf(aes(fill = dissimilarity)) +
 #'   scale_fill_distiller(palette = "Spectral")
-#'
-
 dissimilarity_to_sf <- function(segregation_results) {
   return(
     segregation_results$areal_units %>%

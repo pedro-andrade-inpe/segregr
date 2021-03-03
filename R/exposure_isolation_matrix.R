@@ -20,8 +20,6 @@
 #'
 #' # convert to tabular form
 #' exposure_isolation_matrix(segregation)
-
-
 exposure_isolation_matrix <- function(segregation_results) {
   iso_exp <- rbind(
     segregation_results$Q %>% dplyr::select(group_a = group, group_b = group, iso_exp = isolation),

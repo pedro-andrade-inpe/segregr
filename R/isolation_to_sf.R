@@ -28,8 +28,6 @@
 #'   scale_fill_distiller(palette = "Spectral") +
 #'   facet_wrap(~group) +
 #'   theme_void()
-#'
-
 isolation_to_sf <- function(segregation_results) {
   return(
     segregation_results$areal_units %>%

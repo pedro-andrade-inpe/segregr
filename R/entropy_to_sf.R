@@ -26,8 +26,6 @@
 #' ggplot(data = entropy) +
 #'   geom_sf(aes(fill = entropy)) +
 #'   scale_fill_distiller(palette = "Spectral")
-#'
-
 entropy_to_sf <- function(segregation_results) {
   return(
     segregation_results$areal_units %>%
