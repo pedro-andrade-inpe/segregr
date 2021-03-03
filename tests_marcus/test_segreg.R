@@ -18,7 +18,8 @@ system.time(segregation <- measure_segregation(gla_sf, bandwidth = 2000))
 # load sample data from package segregr
 marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
-data <- marilia_sf
+data <- gla_sf
+bandwidths <- 1000
 bandwidths <- c(0, 500, 1000, 2000)
 
 # calculate segregation metrics

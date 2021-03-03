@@ -55,12 +55,6 @@ measure_segregation <- function(data,
     sf::st_centroid(areas_sf)
   )
 
-  locations_latlon <- suppressWarnings(
-    sf::st_centroid(areas_sf) %>%
-      sf::st_transform(4326) %>%
-      sf::st_coordinates()
-  )
-
   # 2. Extract population ----------------------------------------------------
 
   ## data.frame with the population in the study area, per group
@@ -88,7 +82,7 @@ measure_segregation <- function(data,
   group_population_df[, group_proportion_city := total_population / sum(total_population)]
 
   # 3. Calculate distances between locations ---------------------------------
-  distances_df <- calculate_distances(locations_sf, "sf")
+  distances_df <- calculate_distances(locations_sf, "geodist")
 
   # 4. Calculate Gaussian weights by bandwidth -----------------------------
   weights_df <- calculate_gaussian_weights(distances_df, bandwidths)

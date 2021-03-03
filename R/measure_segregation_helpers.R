@@ -1,10 +1,44 @@
-calculate_distances <- function(points, method = "sf") {
+calculate_distances <- function(points, method = "geodist") {
   # points: an sf with an 'id' field and geometry
 
   # Distances are only relevant when using spatial segregation metrics.
   # Hence, if bandwidth == 0, then this calculation can be ignored.
 
+  if (method == "sf") {
+    return(calculate_distances_sf(points))
+  } else {
+    # geodist
+    return(calculate_distances_geodist(points))
+  }
+}
+
+calculate_distances_sf <- function(points) {
   distances <- st_distance(points, points)
+  distances <- data.table::as.data.table(distances)
+
+  colnames(distances) <- points$id
+  distances$from <- points$id
+
+  distances <- data.table::melt(
+    distances,
+    id.vars = "from",
+    variable.name = "to",
+    value.name = "distance"
+  )
+
+  distances[, distance := as.double(distance)]
+
+  return(distances)
+}
+
+calculate_distances_geodist <- function(points) {
+  points_latlon <- suppressWarnings(
+    sf::st_centroid(points) %>%
+      sf::st_transform(4326) %>%
+      sf::st_coordinates()
+  )
+
+  distances <- geodist::geodist(points_latlon, points_latlon)
   distances <- data.table::as.data.table(distances)
 
   colnames(distances) <- points$id
