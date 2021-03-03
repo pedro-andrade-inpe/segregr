@@ -19,10 +19,10 @@ system.time(segregation <- measure_segregation(gla_sf, bandwidth = 2000))
 marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
 data <- marilia_sf
-bandwidth <- 0
+bandwidths <- c(0, 500, 1000, 2000)
 
 # calculate segregation metrics
-system.time(segregation <- measure_segregation(marilia_sf))
+system.time(segregation <- measure_segregation(marilia_sf, bandwidths = c(0, 500, 1000, 2000, 5000)))
 
 ## dplyr version of measure_segregation: 3.824 seconds
 ## data.table version .................:

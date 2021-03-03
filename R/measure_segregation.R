@@ -35,7 +35,7 @@
 #'
 
 measure_segregation <- function(data,
-                                bandwidth = 0) {
+                                bandwidths = 0) {
 
 
   # This function calculates all segregation metrics available in the
@@ -57,28 +57,11 @@ measure_segregation <- function(data,
     sf::st_centroid(areas_sf)
   )
 
-  # 2. Calculate distances between locations ---------------------------------
-
-  distances_df <- st_distance(locations_sf, locations_sf)
-  distances_df <- data.table::as.data.table(distances_df)
-
-  colnames(distances_df) <- locations_sf$id
-  distances_df$from <- locations_sf$id
-
-  distances_df <- data.table::melt(distances_df,
-                                   id.vars = "from",
-                                   variable.name = "to",
-                                   value.name = "distance")
-
-  distances_df[, distance := as.double(distance)]
-
-  # 3. Calculate Gaussian weights --------------------------------------------
-
-  if (bandwidth == 0) {
-    distances_df[, weight := data.table::fifelse(distance == 0, 1, 0)]
-  } else {
-    distances_df[, weight := exp((-0.5) * (distance / bandwidth) * (distance / bandwidth))]
-  }
+  locations_latlon <- suppressWarnings(
+    sf::st_centroid(areas_sf) %>%
+      sf::st_transform(4326) %>%
+      sf::st_coordinates()
+  )
 
   # 4. Extract population ----------------------------------------------------
 
@@ -104,45 +87,32 @@ measure_segregation <- function(data,
   group_population_df <- population_long_df[, .(total_population = sum(population)), by = group]
   group_population_df[, group_proportion_city := total_population / sum(total_population)]
 
+  # 2. Calculate distances between locations ---------------------------------
+  distances_df <- calculate_distances(locations_sf, "sf")
+
+  # 3. Calculate Gaussian weights by bandwidth -----------------------------
+  weights_df <- calculate_gaussian_weights(distances_df, bandwidths)
+
+
   # 5. Calculate Population Intensity ----------------------------------------
-  distance_matrix <- expand.grid(from = locations_sf$id, to = locations_sf$id, group = group_names)
-  data.table::setDT(distance_matrix)
-
-  ## grab population counts
-  distance_matrix[population_long_df,
-                  on = .(from = id, group),
-                  population.from := i.population]
-
-  distance_matrix[population_long_df,
-                  on = .(to = id, group),
-                  population.to := i.population]
-
-  ## grab distances
-  distance_matrix[distances_df,
-                  on = .(from, to),
-                  `:=`(distance = i.distance, weight = i.weight)]
+  distance_matrix <- calculate_distance_matrix(locations_sf$id, group_names, bandwidths,
+                            population_long_df, weights_df)
 
   ## Calculate population intensity per group and locality
   intensity_df <- distance_matrix[ , .(population = mean(population.from),
                                        population_intensity = weighted.mean(population.to, weight)),
-                                   by = .(from, group)]
-  # intensity_df <- intensity_df[population > 0]
+                                   by = .(from, group, bw)]
   data.table::setnames(intensity_df, "from", "id")
-
 
   ## Calculate population intensity per locality
   localities_df <- distance_matrix[, .(population.from = sum(population.from),
                                        population.to = sum(population.to),
                                        distance = mean(distance),
                                        weight = mean(weight)),
-                                   by = .(from, to)]
-
-
+                                   by = .(from, to, bw)]
   localities_df <- localities_df[, .(population = mean(population.from),
                                      population_intensity = weighted.mean(population.to, weight)),
-                                 by = .(from)]
-
-  # localities_df <- localities_df[population > 0]
+                                 by = .(from, bw)]
   data.table::setnames(localities_df, old = "from", new = "id")
 
   # 6. Calculate Segregation Indices -----------------------------------------
@@ -150,7 +120,7 @@ measure_segregation <- function(data,
   ## Dissimilarity Index ---------------------------------------------------
 
   ### I = Interaction Index, used in the Dissimilarity Index equation ----
-  I <- intensity_df[ , .(population = sum(population)), by = group]
+  I <- population_long_df[ , .(population = sum(population)), by = group]
   I[ , proportion := population / sum(population)]
   I[ , inv_proportion := 1 - proportion]
   I[ , partial_I := proportion * inv_proportion]
@@ -158,11 +128,14 @@ measure_segregation <- function(data,
   I <- sum(I$partial_I)
 
   ### Local Dissimilarity (d) ----
-  local_dissimilarity_df <- intensity_df[ ,
-                                         `:=`(population_locality = sum(population),
-                                              group_proportion_locality = population_intensity / sum(population_intensity)),
-                                         by = id]
+  local_dissimilarity_df <- intensity_df
 
+  local_dissimilarity_df[,
+                         `:=`(
+                           population_locality = sum(population),
+                           group_proportion_locality = population_intensity / sum(population_intensity)
+                         ),
+                         by = .(id, bw)]
 
   local_dissimilarity_df[group_population_df,
                          on = "group",
@@ -170,11 +143,10 @@ measure_segregation <- function(data,
 
   local_dissimilarity_df[, proportion_abs_diff := abs(group_proportion_locality - group_proportion_city)]
   local_dissimilarity_df[, dm := (population_locality / (2 * N * I)) * proportion_abs_diff]
-  local_dissimilarity_df <- local_dissimilarity_df[, .(d = sum(dm)), by = id]
+  local_dissimilarity_df <- local_dissimilarity_df[, .(d = sum(dm)), by = .(id, bw)]
 
   ### Global Dissimilarity (D) ----
-  D <- sum(local_dissimilarity_df$d, na.rm = TRUE)
-
+  D <- local_dissimilarity_df[, .(D = sum(d, na.rm = TRUE)), by = bw]
 
   ## Information Theory Indices (Entropy and H) ----------------------------
 
@@ -184,57 +156,56 @@ measure_segregation <- function(data,
 
   ### Local Entropy (e) ----
   local_entropy_df <- intensity_df
-  local_entropy_df[, proportion := population_intensity / sum(population_intensity), by = id]
+  local_entropy_df[, proportion := population_intensity / sum(population_intensity), by = .(id, bw)]
   local_entropy_df[, group_entropy := proportion * log(1 / proportion)]
   local_entropy_df <- local_entropy_df[, .(population = sum(population),
-                                           e = sum(group_entropy, na.rm = TRUE)), by = id]
+                                           e = sum(group_entropy, na.rm = TRUE)), by = .(id, bw)]
 
   ### Local H Index (h) ----
   local_entropy_df[, h := (population * (E - e)) / (E * N)]
 
   ### Global H Index (H)
-  H <- sum(local_entropy_df$h, na.rm = TRUE)
-
+  H <- local_entropy_df[, .(H = sum(h, na.rm = TRUE)), by = bw]
 
   ## Exposure and Isolation Indices (P and Q) ------------------------------
   iso_exp_df <- intensity_df
   iso_exp_df[, population_group_city := sum(population), by = group]
-  iso_exp_df[localities_df, on = "id", population_intensity_locality := i.population_intensity]
+  iso_exp_df[localities_df, on = .(id, bw), population_intensity_locality := i.population_intensity]
   iso_exp_df[, `:=`(proportion_group_city = population / population_group_city,
                     proportion_group_locality = population_intensity / population_intensity_locality)]
-  iso_exp_df <- iso_exp_df[, .(id, group, proportion_group_city, proportion_group_locality)]
+  iso_exp_df <- iso_exp_df[, .(id, bw, group, proportion_group_city, proportion_group_locality)]
 
   iso_exp_matrix <- expand.grid(
     id = locations_sf$id,
+    bw = bandwidths,
     group_a = group_names,
     group_b = group_names
   ) %>% data.table::setDT()
 
   ### Local Exposure and Isolation
   iso_exp_matrix[iso_exp_df,
-                 on = .(id, group_a = group),
+                 on = .(id, bw, group_a = group),
                  `:=`(proportion_group_city_a = i.proportion_group_city,
                       proportion_group_locality_a = i.proportion_group_locality)]
 
   iso_exp_matrix[iso_exp_df,
-                 on = .(id, group_b = group),
+                 on = .(id, bw, group_b = group),
                  `:=`(proportion_group_city_b = i.proportion_group_city,
                       proportion_group_locality_b = i.proportion_group_locality)]
 
   iso_exp_matrix[, isolation_exposure := proportion_group_city_a * proportion_group_locality_b]
-  # iso_exp_matrix <- na.omit(iso_exp_matrix)
-  local_iso_exp <- iso_exp_matrix[, .(id, group_a, group_b, isolation_exposure)]
+  local_iso_exp <- iso_exp_matrix[, .(id, bw, group_a, group_b, isolation_exposure)]
 
   ### Global Exposure and Isolation
   global_iso_exp <- local_iso_exp[,
                                   .(isolation_exposure = sum(isolation_exposure, na.rm = TRUE)),
-                                  by = .(group_a, group_b)]
+                                  by = .(bw, group_a, group_b)]
 
   #### Separate Exposure and Isolation data
   global_exposure <- global_iso_exp[group_a != group_b]
   data.table::setnames(global_exposure, old = "isolation_exposure", new = "exposure")
 
-  global_isolation <- global_iso_exp[group_a == group_b, .(group_a, isolation_exposure)]
+  global_isolation <- global_iso_exp[group_a == group_b, .(bw, group_a, isolation_exposure)]
   data.table::setnames(global_isolation,
                        old = c("group_a", "isolation_exposure"),
                        new = c("group", "isolation"))
@@ -244,7 +215,7 @@ measure_segregation <- function(data,
                        old = "isolation_exposure",
                        new = "exposure")
 
-  local_isolation <- local_iso_exp[group_a == group_b, .(id, group_a, isolation_exposure)]
+  local_isolation <- local_iso_exp[group_a == group_b, .(id, bw, group_a, isolation_exposure)]
   data.table::setnames(local_isolation,
                        old = c("group_a", "isolation_exposure"),
                        new = c("group", "isolation"))
@@ -254,7 +225,7 @@ measure_segregation <- function(data,
   results <- list(
     areal_units = areas_sf,
     groups = group_names,
-    bandwidth = bandwidth,
+    bandwidth = bandwidths,
     D = D, # Global Dissimilarity
     E = E, # Global Entropy
     H = H, # Global H
