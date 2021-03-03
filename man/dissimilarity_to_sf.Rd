@@ -4,7 +4,7 @@
 \alias{dissimilarity_to_sf}
 \title{Convert local dissimilarity results to SF}
 \usage{
-dissimilarity_to_sf(segregation_results)
+dissimilarity_to_sf(segregation_results, bandwidths = c())
 }
 \arguments{
 \item{segregation_results}{a segreg object containing the results of a
@@ -35,5 +35,4 @@ dissimilarity <- dissimilarity_to_sf(segregation)
 ggplot(data = dissimilarity) +
   geom_sf(aes(fill = dissimilarity)) +
   scale_fill_distiller(palette = "Spectral")
-
 }

@@ -4,7 +4,7 @@
 \alias{measure_segregation}
 \title{Calculate segregation metrics}
 \usage{
-measure_segregation(data, bandwidth = 0)
+measure_segregation(data, bandwidths = 0)
 }
 \arguments{
 \item{data}{a spatial sf object of the study area divided into areal
@@ -42,5 +42,4 @@ segregation$E
 
 # global information theory index H
 segregation$H
-
 }

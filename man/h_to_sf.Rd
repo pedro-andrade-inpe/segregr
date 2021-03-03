@@ -4,7 +4,7 @@
 \alias{h_to_sf}
 \title{Convert local results of information theory index H to SF}
 \usage{
-h_to_sf(segregation_results)
+h_to_sf(segregation_results, bandwidths = c())
 }
 \arguments{
 \item{segregation_results}{a segreg object containing the results of a
@@ -35,5 +35,4 @@ index_h <- h_to_sf(segregation)
 ggplot(data = index_h) +
   geom_sf(aes(fill = h)) +
   scale_fill_distiller(palette = "Spectral")
-
 }

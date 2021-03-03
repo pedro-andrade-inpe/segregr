@@ -5,11 +5,11 @@ utils::globalVariables(c(".", "%>%", ":=", "%like%", "%chin%", "set"))
   requireNamespace("sf")
   requireNamespace("dplyr")
   requireNamespace("data.table")
+  requireNamespace("geodist")
 }
 
 
 #' @importFrom data.table := %between% fifelse %chin% set
-#' @importFrom methods is signature
 NULL
 
 # nocov end

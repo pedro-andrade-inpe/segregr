@@ -37,5 +37,4 @@ ggplot(data = isolation) +
   scale_fill_distiller(palette = "Spectral") +
   facet_wrap(~group) +
   theme_void()
-
 }

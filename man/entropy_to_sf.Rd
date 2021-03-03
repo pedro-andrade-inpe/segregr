@@ -4,7 +4,7 @@
 \alias{entropy_to_sf}
 \title{Convert local entropy results to SF}
 \usage{
-entropy_to_sf(segregation_results)
+entropy_to_sf(segregation_results, bandwidths = c())
 }
 \arguments{
 \item{segregation_results}{a segreg object containing the results of a
@@ -35,5 +35,4 @@ entropy <- entropy_to_sf(segregation)
 ggplot(data = entropy) +
   geom_sf(aes(fill = entropy)) +
   scale_fill_distiller(palette = "Spectral")
-
 }

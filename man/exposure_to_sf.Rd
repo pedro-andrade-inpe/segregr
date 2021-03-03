@@ -35,7 +35,6 @@ exposure <- exposure_to_sf(segregation)
 ggplot(data = exposure) +
   geom_sf(aes(fill = exposure), color = NA) +
   scale_fill_distiller(palette = "Spectral") +
-  facet_grid(group_a~group_b) +
+  facet_grid(group_a ~ group_b) +
   theme_void()
-
 }
