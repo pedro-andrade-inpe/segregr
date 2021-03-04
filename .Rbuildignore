@@ -3,3 +3,6 @@
 ^tests_marcus$
 ^LICENSE\.md$
 ^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
