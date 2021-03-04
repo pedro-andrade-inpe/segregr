@@ -87,15 +87,13 @@ measure_segregation <- function(data,
   # 4. Calculate Gaussian weights by bandwidth -----------------------------
   weights_df <- calculate_gaussian_weights(distances_df, bandwidths)
 
+  rm(distances_df)
 
   # 5. Calculate Population Intensity ----------------------------------------
-  distance_matrix <- calculate_distance_matrix(
-    locations_sf$id, group_names, bandwidths,
-    population_long_df, weights_df
-  )
+  weights_df <- assign_population(weights_df, group_names, population_long_df)
 
   ## Calculate population intensity per group and locality
-  intensity_df <- distance_matrix[, .(
+  intensity_df <- weights_df[, .(
     population = mean(population.from),
     population_intensity = weighted.mean(population.to, weight)
   ),
@@ -104,7 +102,7 @@ measure_segregation <- function(data,
   data.table::setnames(intensity_df, "from", "id")
 
   ## Calculate population intensity per locality
-  localities_df <- distance_matrix[, .(
+  localities_df <- weights_df[, .(
     population.from = sum(population.from),
     population.to = sum(population.to),
     distance = mean(distance),

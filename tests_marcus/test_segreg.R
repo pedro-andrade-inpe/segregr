@@ -90,6 +90,20 @@ poa
 
 poa_census <- geobr::read_census_tract(code_tract = 43)
 
+library(geobr)
+poa_grid <- geobr::read_statistical_grid(code_grid = "RS")
+
+poa_grid %>%
+  ggplot() +
+  geom_sf()
+
+st_write(poa_grid, "poa.gpkg")
 
 
+
+b <- 2000
+d <- 1:10000
+weight = exp((-0.5) * (d / b) * (d / b))
+data <- tibble::tibble(distance = d, weight = weight)
+ggplot(data %>% filter(weight >= 0.01)) + geom_point(aes(x=distance, y= weight)) + geom_vline(xintercept = b)
 
