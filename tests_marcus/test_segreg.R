@@ -6,7 +6,7 @@ library("viridis")
 library("devtools")
 library("data.table")
 library("sf")
-library("segregr")
+# library("segregr")
 library("tidyverse")
 library("geobr")
 
@@ -14,13 +14,14 @@ gla_sf <- st_read(here::here("inst/extdata/gla.gpkg"))
 system.time(segregation <- measure_segregation(gla_sf, bandwidth = 2000))
 # com data.table =  4.093 segundos
 # sem data.table = 36.683 segundos
+# com matrizes   =  0.249 segundos
 
 # load sample data from package segregr
 marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
-data <- gla_sf
+data <- marilia_sf
 bandwidths <- 1000
-bandwidths <- c(0, 500, 1000, 2000)
+bandwidths <- c(0, 500, 1000)
 
 # calculate segregation metrics
 system.time(segregation <- measure_segregation(marilia_sf, bandwidths = c(0, 500, 1000, 2000, 5000)))

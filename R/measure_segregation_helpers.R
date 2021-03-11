@@ -12,33 +12,34 @@ calculate_distances <- function(points, method = "geodist") {
     distances <- calculate_distances_geodist(points)
   }
 
-  distances <- data.table::as.data.table(distances)
-
-  colnames(distances) <- points$id
-  distances$from <- points$id
-
-  distances <- data.table::melt(
-    distances,
-    id.vars = "from",
-    variable.name = "to",
-    value.name = "distance"
-  )
-
-  distances[, distance := as.double(distance)]
+  # distances <- data.table::as.data.table(distances)
+  #
+  # colnames(distances) <- points$id
+  # distances$from <- points$id
+  #
+  # distances <- data.table::melt(
+  #   distances,
+  #   id.vars = "from",
+  #   variable.name = "to",
+  #   value.name = "distance"
+  # )
+  #
+  # distances[, distance := as.double(distance)]
 
   return(distances)
 }
 
 calculate_distances_sf <- function(points) {
-  distances <- st_distance(points, points)
+  distances <- sf::st_distance(points, points)
+  distances <- base::as.double(distances)
+  distances <- base::matrix(distances, nrow = nrow(points))
 
   return(distances)
 }
 
 calculate_distances_geodist <- function(points) {
   points_latlon <- suppressWarnings(
-    sf::st_centroid(points) %>%
-      sf::st_transform(4326) %>%
+    sf::st_transform(points, 4326) %>%
       sf::st_coordinates()
   )
 
@@ -47,23 +48,17 @@ calculate_distances_geodist <- function(points) {
   return(distances)
 }
 
-calculate_gaussian_weights <- function(distances, bandwidths, cutoff = 0.01) {
+calculate_gaussian_weights <- function(distances, bandwidths) {
+  names(bandwidths) <- bandwidths
+
   weights <- purrr::map(bandwidths, function(b) {
     if (b == 0) {
-      dplyr::mutate(distances, bw = b,  weight = dplyr::if_else(distance == 0, 1, 0))
-
-      # distances_df[, weight = data.table::fifelse(distance == 0, 1, 0)]
+      diag(nrow = nrow(distances), ncol = ncol(distances))
     } else {
-      dplyr::mutate(distances, bw = b, weight = exp((-0.5) * (distance / b) * (distance / b)))
-
-      # distances_df[, weight := exp((-0.5) * (distance / b) * (distance / b))]
+      exp((-0.5) * (distances / b) * (distances / b))
     }
   })
 
-  weights <- data.table::rbindlist(weights)
-
-  # remove localities with too little influence
-  weights <- subset(weights, weight >= 0.01)
   return(weights)
 }
 

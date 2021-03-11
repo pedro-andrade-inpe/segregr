@@ -82,41 +82,42 @@ measure_segregation <- function(data,
   group_population_df[, group_proportion_city := total_population / sum(total_population)]
 
   # 3. Calculate distances between locations ---------------------------------
-  distances_df <- calculate_distances(locations_sf, "geodist")
+  distance_matrix <- calculate_distances(locations_sf, "geodist")
 
   # 4. Calculate Gaussian weights by bandwidth -----------------------------
-  weights_df <- calculate_gaussian_weights(distances_df, bandwidths)
+  weights_matrix <- calculate_gaussian_weights(distance_matrix, bandwidths)
 
-  rm(distances_df)
+  rm(distance_matrix)
 
   # 5. Calculate Population Intensity ----------------------------------------
-  weights_df <- assign_population(weights_df, group_names, population_long_df)
+  ## population data.frame to matrix
+  ids <- locations_sf$id
+  population_matrix <- population_df %>% dplyr::select(-id) %>% base::as.matrix()
 
-  ## Calculate population intensity per group and locality
-  intensity_df <- weights_df[, .(
-    population = mean(population.from),
-    population_intensity = weighted.mean(population.to, weight)
-  ),
-  by = .(from, group, bw)
-  ]
-  data.table::setnames(intensity_df, "from", "id")
+  ## population intensity by group and location
+  intensity_group <- purrr::map(names(weights_matrix), function(x) {
+    data.table::data.table(id = ids, bw = as.numeric(x),
+                           data.table::as.data.table((weights_matrix[[x]] %*% population_matrix) / colSums(weights_matrix[[x]]))
+    )
+  })
 
-  ## Calculate population intensity per locality
-  localities_df <- weights_df[, .(
-    population.from = sum(population.from),
-    population.to = sum(population.to),
-    distance = mean(distance),
-    weight = mean(weight)
-  ),
-  by = .(from, to, bw)
-  ]
-  localities_df <- localities_df[, .(
-    population = mean(population.from),
-    population_intensity = weighted.mean(population.to, weight)
-  ),
-  by = .(from, bw)
-  ]
-  data.table::setnames(localities_df, old = "from", new = "id")
+  ## population intensity by location
+  intensity_local <- purrr::map(names(weights_matrix), function(x) {
+    data.table::data.table(id = ids, bw = as.numeric(x),
+                           intensity = (weights_matrix[[x]] %*% rowSums(population_matrix)) / colSums(weights_matrix[[x]])
+    )
+  })
+
+  ## convert matrices to data.tables
+  intensity_group <- data.table::rbindlist(intensity_group)
+  intensity_group <- data.table::melt(intensity_group, id.vars = c("id", "bw"), variable.name = "group", value.name = "intensity")
+  intensity_group[population_long_df, on = .(id, group), population := i.population]
+  data.table::setcolorder(intensity_group, neworder = c("id", "bw", "group", "population", "intensity"))
+
+  intensity_local <- data.table::rbindlist(intensity_local)
+  data.table::setnames(intensity_local, old = "intensity.V1", new = "intensity")
+
+  rm(weights_matrix)
 
   # 6. Calculate Segregation Indices -----------------------------------------
 
@@ -131,12 +132,12 @@ measure_segregation <- function(data,
   I <- sum(I$partial_I)
 
   ### Local Dissimilarity (d) ----
-  local_dissimilarity_df <- intensity_df
+  local_dissimilarity_df <- data.table::copy(intensity_group)
 
   local_dissimilarity_df[,
     `:=`(
       population_locality = sum(population),
-      group_proportion_locality = population_intensity / sum(population_intensity)
+      group_proportion_locality = intensity / sum(intensity)
     ),
     by = .(id, bw)
   ]
@@ -160,8 +161,8 @@ measure_segregation <- function(data,
   E <- sum(E$group_entropy)
 
   ### Local Entropy (e) ----
-  local_entropy_df <- intensity_df
-  local_entropy_df[, proportion := population_intensity / sum(population_intensity), by = .(id, bw)]
+  local_entropy_df <- data.table::copy(intensity_group)
+  local_entropy_df[, proportion := intensity / sum(intensity), by = .(id, bw)]
   local_entropy_df[, group_entropy := proportion * log(1 / proportion)]
   local_entropy_df <- local_entropy_df[, .(
     population = sum(population),
@@ -175,12 +176,12 @@ measure_segregation <- function(data,
   H <- local_entropy_df[, .(H = sum(h, na.rm = TRUE)), by = bw]
 
   ## Exposure and Isolation Indices (P and Q) ------------------------------
-  iso_exp_df <- intensity_df
+  iso_exp_df <- data.table::copy(intensity_group)
   iso_exp_df[, population_group_city := sum(population), by = group]
-  iso_exp_df[localities_df, on = .(id, bw), population_intensity_locality := i.population_intensity]
+  iso_exp_df[intensity_local, on = .(id, bw), population_intensity_locality := i.intensity]
   iso_exp_df[, `:=`(
     proportion_group_city = population / population_group_city,
-    proportion_group_locality = population_intensity / population_intensity_locality
+    proportion_group_locality = intensity / population_intensity_locality
   )]
   iso_exp_df <- iso_exp_df[, .(id, bw, group, proportion_group_city, proportion_group_locality)]
 
