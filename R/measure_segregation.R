@@ -4,6 +4,8 @@
 #'      units (such as census tracts), containing the columns 'id', 'geometry',
 #'      and one column per population group indicating that group's population in
 #'      the local areal unit.
+#' @param id_field character. The name of the identificator column in the input
+#'      data. Defaults to 'id'.
 #' @param bandwidth numeric. A bandwidth, in meters, used to set the scale of
 #'     analysis for spatial segregation measurement. When set to 0, aspatial
 #'     metrics will be calculated.
@@ -33,8 +35,9 @@
 #' # global information theory index H
 #' segregation$H
 measure_segregation <- function(data,
+                                id_field = "id",
+                                distance_method = "geodist",
                                 bandwidths = 0) {
-
 
   # This function calculates all segregation metrics available in the
   # segregr package and returns them all in a list containing individual values
@@ -48,7 +51,7 @@ measure_segregation <- function(data,
   # 1. Extract geometries ----------------------------------------------------
 
   ## sf object with areal units (census tracts) provided by the user
-  areas_sf <- data["id"]
+  areas_sf <- data[id_field]
 
   ## extract the centroid of each areal unit
   locations_sf <- suppressWarnings(
@@ -82,7 +85,7 @@ measure_segregation <- function(data,
   group_population_df[, group_proportion_city := total_population / sum(total_population)]
 
   # 3. Calculate distances between locations ---------------------------------
-  distance_matrix <- calculate_distances(locations_sf, "geodist")
+  distance_matrix <- calculate_distances(locations_sf, distance_method)
 
   # 4. Calculate Gaussian weights by bandwidth -----------------------------
   weights_matrix <- calculate_gaussian_weights(distance_matrix, bandwidths)
