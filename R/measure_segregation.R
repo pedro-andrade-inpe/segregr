@@ -183,7 +183,8 @@ measure_segregation <- function(data,
   iso_exp_df[, population_group_city := sum(population, na.rm = TRUE), by = .(bw, group)]
   iso_exp_df[intensity_local, on = .(id, bw), population_intensity_locality := i.intensity]
   iso_exp_df[, `:=`(
-    proportion_group_city = population / population_group_city,
+    proportion_group_city = intensity / population_group_city,
+    # proportion_group_city = population / population_group_city,
     proportion_group_locality = intensity / population_intensity_locality
   )]
   iso_exp_df <- iso_exp_df[, .(id, bw, group, proportion_group_city, proportion_group_locality)]

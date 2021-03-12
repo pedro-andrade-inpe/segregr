@@ -1,17 +1,12 @@
-library("dplyr")
-library("ggplot2")
-library("magrittr")
-library("sf")
 library("viridis")
-library("devtools")
 library("data.table")
 library("sf")
-# library("segregr")
 library("tidyverse")
 library("geobr")
+devtools::load_all(".")
 
 gla_sf <- st_read(here::here("inst/extdata/gla.gpkg"))
-system.time(segregation <- measure_segregation(gla_sf, bandwidth = 2000))
+system.time(segregation <- measure_segregation(gla_sf, bandwidth = c(0, 700, 2000, 5000)))
 # com data.table =  4.093 segundos
 # sem data.table = 36.683 segundos
 # com matrizes   =  0.249 segundos
@@ -69,11 +64,11 @@ entropy_to_sf(segregation) %>%
   scale_fill_viridis() +
   facet_wrap(~bw)
 
-isolation_to_sf(segregation) %>% filter(group == "Black") %>%
+isolation_to_sf(segregation) %>% filter(group == "Wbritish") %>%
   ggplot() +
   geom_sf(aes(fill = isolation), colour = NA) +
   scale_fill_viridis() +
-  facet_wrap(~group) +
+  facet_wrap(~bw) +
   theme_void()
 
 exposure_to_sf(segregation) %>%
