@@ -2,6 +2,7 @@
 #'
 #' @param segregation_results a segreg object containing the results of a
 #'     call to measure_segregation().
+#' @param bandwidths
 #'
 #' @return a spatial sf object with local entropy results
 #'

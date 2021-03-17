@@ -14,16 +14,17 @@ system.time(segregation <- measure_segregation(gla_sf, bandwidth = c(0, 700, 200
 # load sample data from package segregr
 marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
+
 data <- marilia_sf
 bandwidths <- 1000
 bandwidths <- c(0, 500, 1000)
 
 # calculate segregation metrics
-system.time(segregation <- measure_segregation(marilia_sf, bandwidths = c(0, 500, 1000, 2000, 5000)))
+system.time(segregation <- measure_segregation(marilia_sf, bandwidths = c(0, 500, 750, 1000)))
+segregation_results <- segregation
 
-## dplyr version of measure_segregation: 3.824 seconds
-## data.table version .................:
-
+global_metrics_to_df(segregation) %>% View()
+local_metrics_to_sf(segregation) %>% View()
 
 # global dissimilarity index
 segregation$D %>%
@@ -94,6 +95,21 @@ poa_grid %>%
   geom_sf()
 
 st_write(poa_grid, "poa.gpkg")
+
+segregation$Q %>% filter(group == "Wbritish")
+
+# smooth
+# 1:    0 Wbritish 0.5583243
+# 2:  700 Wbritish 0.5433872
+# 3: 2000 Wbritish 0.5076631
+# 4: 5000 Wbritish 0.4510788
+
+# original
+# bw    group isolation
+# 1:    0 Wbritish 0.5583243
+# 2:  700 Wbritish 0.5490044
+# 3: 2000 Wbritish 0.5227342
+# 4: 5000 Wbritish 0.4785019
 
 
 

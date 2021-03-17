@@ -4,13 +4,21 @@
 \alias{measure_segregation}
 \title{Calculate segregation metrics}
 \usage{
-measure_segregation(data, bandwidths = 0)
+measure_segregation(
+  data,
+  id_field = "id",
+  distance_method = "geodist",
+  bandwidths = 0
+)
 }
 \arguments{
 \item{data}{a spatial sf object of the study area divided into areal
 units (such as census tracts), containing the columns 'id', 'geometry',
 and one column per population group indicating that group's population in
 the local areal unit.}
+
+\item{id_field}{character. The name of the identificator column in the input
+data. Defaults to 'id'.}
 
 \item{bandwidth}{numeric. A bandwidth, in meters, used to set the scale of
 analysis for spatial segregation measurement. When set to 0, aspatial
