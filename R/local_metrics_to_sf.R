@@ -39,8 +39,12 @@ local_metrics_to_sf <- function(segregation_results, bandwidths = c()) {
     dplyr::left_join(iso_exp)
 
   if (length(bandwidths) != 0) {
-    segreg_results <- filter(segreg_results, bw %in% bandwidths)
+    segreg_results <- dplyr::filter(segreg_results, bw %in% bandwidths)
   }
+
+  segreg_results <- segregation_results$areal_units %>%
+    dplyr::select(id) %>%
+    dplyr::left_join(segreg_results, by = c("id"))
 
   return(segreg_results)
 }

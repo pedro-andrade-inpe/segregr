@@ -38,7 +38,7 @@ global_metrics_to_df <- function(segregation_results, bandwidths = c()) {
     dplyr::left_join(iso_exp)
 
   if (length(bandwidths) != 0) {
-    segreg_results <- filter(segreg_results, bw %in% bandwidths)
+    segreg_results <- dplyr::filter(segreg_results, bw %in% bandwidths)
   }
 
   return(segreg_results)
