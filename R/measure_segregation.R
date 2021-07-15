@@ -37,6 +37,7 @@
 measure_segregation <- function(data,
                                 id_field = "id",
                                 distance_method = "geodist",
+                                weight_function = "gaussian",
                                 bandwidths = 0) {
 
   # This function calculates all segregation metrics available in the
@@ -88,7 +89,11 @@ measure_segregation <- function(data,
   distance_matrix <- calculate_distances(locations_sf, distance_method)
 
   # 4. Calculate Gaussian weights by bandwidth -----------------------------
-  weights_matrix <- calculate_gaussian_weights(distance_matrix, bandwidths)
+  if (weight_function == "gaussian") {
+    weights_matrix <- calculate_gaussian_weights(distance_matrix, bandwidths)
+  } else {
+    weights_matrix <- calculate_step_weights(distance_matrix, bandwidths)
+  }
 
   rm(distance_matrix)
 
@@ -119,6 +124,11 @@ measure_segregation <- function(data,
 
   intensity_local <- data.table::rbindlist(intensity_local)
   data.table::setnames(intensity_local, old = "intensity.V1", new = "intensity")
+
+  intensity_df <- intensity_group %>%
+    dplyr::select(-population) %>%
+    tidyr::pivot_wider(names_from = group, values_from = intensity) %>%
+    setDT()
 
   rm(weights_matrix)
 
@@ -244,12 +254,16 @@ measure_segregation <- function(data,
     new = c("group", "isolation")
   )
 
+
+
   # 7. Return results --------------------------------------------------------
 
   results <- list(
     areal_units = areas_sf,
     groups = group_names,
     bandwidth = bandwidths,
+    population = population_df,
+    intensity = intensity_df,
     D = D, # Global Dissimilarity
     E = E, # Global Entropy
     H = H, # Global H

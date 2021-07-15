@@ -5,8 +5,8 @@ library("tidyverse")
 library("geobr")
 devtools::load_all(".")
 
-gla_sf <- st_read(here::here("inst/extdata/gla.gpkg"))
-system.time(segregation <- measure_segregation(gla_sf, bandwidth = c(0, 700, 2000, 5000)))
+# gla_sf <- st_read(here::here("inst/extdata/gla.gpkg"))
+# system.time(segregation <- measure_segregation(gla_sf, bandwidth = c(0, 700, 2000, 5000)))
 # com data.table =  4.093 segundos
 # sem data.table = 36.683 segundos
 # com matrizes   =  0.249 segundos
@@ -16,6 +16,8 @@ marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segreg
 
 
 data <- marilia_sf
+id_field = "id"
+distance_method = "geodist"
 bandwidths <- 1000
 bandwidths <- c(0, 500, 1000)
 
@@ -118,4 +120,14 @@ d <- 1:10000
 weight = exp((-0.5) * (d / b) * (d / b))
 data <- tibble::tibble(distance = d, weight = weight)
 ggplot(data %>% filter(weight >= 0.01)) + geom_point(aes(x=distance, y= weight)) + geom_vline(xintercept = b)
+
+
+segregation_results$population %>%
+  summarise_if(is.numeric, sum)
+
+segregation_results$intensity %>%
+  group_by(bw) %>%
+  summarise_if(is.numeric, sum) %>%
+  mutate(across(.fns=sum))
+
 

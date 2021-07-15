@@ -62,6 +62,24 @@ calculate_gaussian_weights <- function(distances, bandwidths) {
   return(weights)
 }
 
+calculate_step_weights <- function(distances, bandwidths) {
+  names(bandwidths) <- bandwidths
+
+  weights <- purrr::map(bandwidths, function(b) {
+    if (b == 0) {
+      diag(nrow = nrow(distances), ncol = ncol(distances))
+    } else {
+      dmatrix <- distances
+      dmatrix[dmatrix <= b] <- 1
+      dmatrix[dmatrix > b] <- 0
+
+      return(dmatrix)
+    }
+  })
+
+  return(weights)
+}
+
 assign_population <- function(weights, groups, population) {
     groups_dt <- data.table::data.table(group = groups, k = 1)
     weights[, k := 1]
