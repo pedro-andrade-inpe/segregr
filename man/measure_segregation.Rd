@@ -8,6 +8,7 @@ measure_segregation(
   data,
   id_field = "id",
   distance_method = "geodist",
+  weight_function = "gaussian",
   bandwidths = 0
 )
 }
@@ -20,7 +21,12 @@ the local areal unit.}
 \item{id_field}{character. The name of the identificator column in the input
 data. Defaults to 'id'.}
 
-\item{bandwidth}{numeric. A bandwidth, in meters, used to set the scale of
+\item{distance_method}{The method to compute distance between spatial objects.
+Default is "geodist".}
+
+\item{weight_function}{The weight function. Default is "gaussian".}
+
+\item{bandwidths}{numeric. A bandwidth, in meters, used to set the scale of
 analysis for spatial segregation measurement. When set to 0, aspatial
 metrics will be calculated.}
 }
@@ -32,15 +38,11 @@ a segreg object, a list containing the input spatial data and the
 Calculate segregation metrics
 }
 \examples{
-
-library(sf)
-library(segregr)
-
 # load sample data from package segregr
-marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
 # calculate segregation metrics
-segregation <- measure_segregation(marilia_sf)
+segregation <- segregr::measure_segregation(marilia_sf)
 
 # global dissimilarity index
 segregation$D

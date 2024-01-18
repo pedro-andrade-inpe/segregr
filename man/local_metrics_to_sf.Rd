@@ -7,14 +7,20 @@
 local_metrics_to_sf(segregation_results, bandwidths = c())
 }
 \arguments{
-\item{segregation_results}{a segreg object containing the results of a
+\item{segregation_results}{A segreg object containing the results of a
 call to measure_segregation().}
 
-\item{bandwidths}{}
+\item{bandwidths}{Bands to be used.}
 }
 \value{
-
+Simple feature with the local metrics
 }
 \description{
 Title
+}
+\examples{
+marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+
+segregation <- segregr::measure_segregation(marilia_sf)
+polygons <- segregr::local_metrics_to_sf(segregation)
 }

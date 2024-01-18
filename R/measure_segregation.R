@@ -6,9 +6,12 @@
 #'      the local areal unit.
 #' @param id_field character. The name of the identificator column in the input
 #'      data. Defaults to 'id'.
-#' @param bandwidth numeric. A bandwidth, in meters, used to set the scale of
+#' @param bandwidths numeric. A bandwidth, in meters, used to set the scale of
 #'     analysis for spatial segregation measurement. When set to 0, aspatial
 #'     metrics will be calculated.
+#' @param distance_method The method to compute distance between spatial objects.
+#' Default is "geodist".
+#' @param weight_function The weight function. Default is "gaussian".
 #'
 #' @return a segreg object, a list containing the input spatial data and the
 #'     results of the segregation metrics.
@@ -16,15 +19,11 @@
 #' @export
 #'
 #' @examples
-#'
-#' library(sf)
-#' library(segregr)
-#'
 #' # load sample data from package segregr
-#' marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+#' marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 #'
 #' # calculate segregation metrics
-#' segregation <- measure_segregation(marilia_sf)
+#' segregation <- segregr::measure_segregation(marilia_sf)
 #'
 #' # global dissimilarity index
 #' segregation$D
@@ -62,7 +61,7 @@ measure_segregation <- function(data,
   # 2. Extract population ----------------------------------------------------
 
   ## data.frame with the population in the study area, per group
-  population_df <- st_set_geometry(data, NULL)
+  population_df <- sf::st_set_geometry(data, NULL)
   data.table::setDT(population_df)
 
   ## use the order of the columns in the input data to order group names as factors
@@ -128,7 +127,7 @@ measure_segregation <- function(data,
   intensity_df <- intensity_group %>%
     dplyr::select(-population) %>%
     tidyr::pivot_wider(names_from = group, values_from = intensity) %>%
-    setDT()
+    data.table::setDT()
 
   rm(weights_matrix)
 

@@ -7,19 +7,14 @@
 #' @export
 #'
 #' @examples
-#'
-#' library("sf")
-#' library("ggplot2")
-#' library("segregr")
-#'
 #' # load sample data from package segregr
-#' marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+#' marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 #'
 #' # calculate segregation metrics
-#' segregation <- measure_segregation(marilia_sf)
+#' segregation <- segregr::measure_segregation(marilia_sf)
 #'
 #' # convert to tabular form
-#' exposure_isolation_matrix(segregation)
+#' segregr::exposure_isolation_matrix(segregation)
 exposure_isolation_matrix <- function(segregation_results) {
   iso_exp <- rbind(
     segregation_results$Q %>% dplyr::select(group_a = group, group_b = group, iso_exp = isolation),

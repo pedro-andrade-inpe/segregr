@@ -10,31 +10,26 @@ entropy_to_sf(segregation_results, bandwidths = c())
 \item{segregation_results}{a segreg object containing the results of a
 call to measure_segregation().}
 
-\item{bandwidths}{}
+\item{bandwidths}{Bands to be used.}
 }
 \value{
-a spatial sf object with local entropy results
+A spatial sf object with local entropy results.
 }
 \description{
 Convert local entropy results to SF
 }
 \examples{
-
-library("sf")
-library("ggplot2")
-library("segregr")
-
 # load sample data from package segregr
-marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
 # calculate segregation metrics
-segregation <- measure_segregation(marilia_sf)
+segregation <- segregr::measure_segregation(marilia_sf)
 
 # export local entropy results
-entropy <- entropy_to_sf(segregation)
+entropy <- segregr::entropy_to_sf(segregation)
 
 # plot local entropy
-ggplot(data = entropy) +
-  geom_sf(aes(fill = entropy)) +
-  scale_fill_distiller(palette = "Spectral")
+#ggplot(data = entropy) +
+ # geom_sf(aes(fill = entropy)) +
+ # scale_fill_distiller(palette = "Spectral")
 }

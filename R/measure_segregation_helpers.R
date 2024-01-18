@@ -30,22 +30,16 @@ calculate_distances <- function(points, method = "geodist") {
 }
 
 calculate_distances_sf <- function(points) {
-  distances <- sf::st_distance(points, points)
-  distances <- base::as.double(distances)
-  distances <- base::matrix(distances, nrow = nrow(points))
+  sf::st_distance(points, points) %>%
+    base::as.double() %>%
+    base::matrix(distances, nrow = nrow(points))
 
   return(distances)
 }
 
 calculate_distances_geodist <- function(points) {
-  points_latlon <- suppressWarnings(
-    sf::st_transform(points, 4326) %>%
-      sf::st_coordinates()
-  )
-
-  distances <- geodist::geodist(points_latlon, points_latlon)
-
-  return(distances)
+  sf::st_coordinates(points) %>%
+    geodist::geodist(measure = "geodesic")
 }
 
 calculate_gaussian_weights <- function(distances, bandwidths) {

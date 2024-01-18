@@ -17,17 +17,12 @@ a data.frame with global exposure and isolation results in tabular form
 Convert global exposure and isolation to tabular form
 }
 \examples{
-
-library("sf")
-library("ggplot2")
-library("segregr")
-
 # load sample data from package segregr
-marilia_sf <- st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
 # calculate segregation metrics
-segregation <- measure_segregation(marilia_sf)
+segregation <- segregr::measure_segregation(marilia_sf)
 
 # convert to tabular form
-exposure_isolation_matrix(segregation)
+segregr::exposure_isolation_matrix(segregation)
 }

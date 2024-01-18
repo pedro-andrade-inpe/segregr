@@ -1,15 +1,19 @@
 #' Title
 #'
-#' @param segregation_results
-#' @param bandwidths
+#' @param segregation_results Result of measure_segregation().
+#' @param bandwidths Attributes to be used. Default is all.
 #'
-#' @return
+#' @return A data.frame.
 #' @export
 #'
 #' @examples
+#' marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+#'
+#' segregation <- segregr::measure_segregation(marilia_sf)
+#' df <- segregr::global_metrics_to_df(segregation)
 global_metrics_to_df <- function(segregation_results, bandwidths = c()) {
 
-  # prepare global results dataframe ----------------------------------------
+  # prepare global results data.frame ----------------------------------------
   # exposure / isolation
   segreg_iso <- segregation_results$Q %>%
     dplyr::mutate(group_a = group, group_b = group) %>%
@@ -42,5 +46,4 @@ global_metrics_to_df <- function(segregation_results, bandwidths = c()) {
   }
 
   return(segreg_results)
-
 }

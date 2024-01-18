@@ -1,13 +1,17 @@
 #' Title
 #'
-#' @param segregation_results a segreg object containing the results of a
+#' @param segregation_results A segreg object containing the results of a
 #'     call to measure_segregation().
-#' @param bandwidths
+#' @param bandwidths Bands to be used.
 #'
-#' @return
+#' @return Simple feature with the local metrics
 #' @export
 #'
 #' @examples
+#' marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
+#'
+#' segregation <- segregr::measure_segregation(marilia_sf)
+#' polygons <- segregr::local_metrics_to_sf(segregation)
 local_metrics_to_sf <- function(segregation_results, bandwidths = c()) {
 
   # prepare global results dataframe ----------------------------------------
