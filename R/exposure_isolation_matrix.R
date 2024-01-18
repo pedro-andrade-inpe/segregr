@@ -18,7 +18,8 @@
 exposure_isolation_matrix <- function(segregation_results) {
   iso_exp <- rbind(
     segregation_results$Q %>% dplyr::select(group_a = group, group_b = group, iso_exp = isolation),
-    segregation_results$P %>% dplyr::rename(iso_exp = exposure)
+    segregation_results$P %>% dplyr::rename(iso_exp = exposure),
+    fill = TRUE
   )
 
   return(
