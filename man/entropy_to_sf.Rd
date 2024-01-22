@@ -19,6 +19,7 @@ A spatial sf object with local entropy results.
 Convert local entropy results to SF
 }
 \examples{
+require(tmap)
 # load sample data from package segregr
 marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
@@ -29,7 +30,7 @@ segregation <- segregr::measure_segregation(marilia_sf)
 entropy <- segregr::entropy_to_sf(segregation)
 
 # plot local entropy
-#ggplot(data = entropy) +
- # geom_sf(aes(fill = entropy)) +
- # scale_fill_distiller(palette = "Spectral")
+tm_shape(entropy) +
+  tm_polygons("entropy", n = 3) +
+  tm_layout(legend.position=c(0.1, 0.1), scale = 0.5)
 }

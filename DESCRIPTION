@@ -1,12 +1,12 @@
 Package: segregr
 Type: Package
 Title: Spatial segregation metrics in R
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Author: 
     person("Marcus", "Saraiva", email = "marcus.saraiva@gmail.com", role = c("aut", "cre"),
     comment = c(ORCID = "0000-0001-6218-2338"))
 Maintainer: The package maintainer <yourself@somewhere.net>
-Description: This package makes it easy to calculate segregation metrics  in R. 
+Description: This package makes it easy to calculate segregation metrics in R. 
     The metrics implemented are *generalised*, *spatial*, and *global* / *local* 
     versions of the Dissimilarity index, and Theil's Entropy and Information 
     Theory indices (metrics of evenness), and the Isolation and Exposure indices.
@@ -23,5 +23,6 @@ Imports:
     magrittr,
     purrr,
     data.table,
-    geodist
+    geodist,
+    tmap
 Config/testthat/edition: 3

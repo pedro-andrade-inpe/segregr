@@ -19,6 +19,7 @@ a spatial sf object with local dissimilarity results
 Convert local dissimilarity results to SF
 }
 \examples{
+require(tmap)
 # load sample data from package segregr
 marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 
@@ -29,7 +30,7 @@ segregation <- segregr::measure_segregation(marilia_sf)
 dissimilarity <- segregr::dissimilarity_to_sf(segregation)
 
 # plot local dissimilarity
-##ggplot(data = dissimilarity) +
-##   geom_sf(aes(fill = dissimilarity)) +
-##   scale_fill_distiller(palette = "Spectral")
+tm_shape(dissimilarity) +
+  tm_polygons("dissimilarity", n = 3) +
+  tm_layout(legend.position=c(0.1,0.1), scale = 0.5)
 }

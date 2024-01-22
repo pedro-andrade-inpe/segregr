@@ -1,19 +1,19 @@
 #' Calculate segregation metrics
 #'
-#' @param data a spatial sf object of the study area divided into areal
+#' @param data A spatial sf object of the study area divided into areal
 #'      units (such as census tracts), containing the columns 'id', 'geometry',
 #'      and one column per population group indicating that group's population in
 #'      the local areal unit.
-#' @param id_field character. The name of the identificator column in the input
+#' @param id_field Character. The name of the identification column in the input
 #'      data. Defaults to 'id'.
-#' @param bandwidths numeric. A bandwidth, in meters, used to set the scale of
+#' @param bandwidths Numeric. A bandwidth, in meters, used to set the scale of
 #'     analysis for spatial segregation measurement. When set to 0, aspatial
 #'     metrics will be calculated.
 #' @param distance_method The method to compute distance between spatial objects.
 #' Default is "geodist".
 #' @param weight_function The weight function. Default is "gaussian".
 #'
-#' @return a segreg object, a list containing the input spatial data and the
+#' @return A segreg object, a list containing the input spatial data and the
 #'     results of the segregation metrics.
 #'
 #' @export
@@ -46,7 +46,6 @@ measure_segregation <- function(data,
   # This is the main function of the package, so it's quite long. In the future,
   # I should break this down into smaller functions. For now, the code below
   # is divided into 'chapters'
-
 
   # 1. Extract geometries ----------------------------------------------------
 
@@ -253,8 +252,6 @@ measure_segregation <- function(data,
     new = c("group", "isolation")
   )
 
-
-
   # 7. Return results --------------------------------------------------------
 
   results <- list(
@@ -268,13 +265,9 @@ measure_segregation <- function(data,
     H = H, # Global H
     d = local_dissimilarity_df,
     h = local_entropy_df,
-    # Global Exposure
     P = global_exposure,
-    # Global Isolation
     Q = global_isolation,
-    # Local Exposure
     p = local_exposure,
-    # Local Isolation
     q = local_isolation
   )
 

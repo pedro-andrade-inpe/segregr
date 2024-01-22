@@ -18,7 +18,7 @@ units (such as census tracts), containing the columns 'id', 'geometry',
 and one column per population group indicating that group's population in
 the local areal unit.}
 
-\item{id_field}{character. The name of the identificator column in the input
+\item{id_field}{character. The name of the identification column in the input
 data. Defaults to 'id'.}
 
 \item{distance_method}{The method to compute distance between spatial objects.

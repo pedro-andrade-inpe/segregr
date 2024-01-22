@@ -6,10 +6,13 @@ utils::globalVariables(c(".", "%>%", ":=", "%like%", "%chin%", "set"))
   requireNamespace("dplyr")
   requireNamespace("data.table")
   requireNamespace("geodist")
+  requireNamespace("tmap")
 }
 
-
 #' @importFrom data.table := %between% fifelse %chin% set
+NULL
+
+#' @importFrom tmap tm_shape tm_polygons tm_layout
 NULL
 
 utils::globalVariables(c(".", "%>%", ":="))
@@ -27,7 +30,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(
     'proportion_abs_diff', 'proportion_group_city', 'proportion_group_city_a',
     'proportion_group_locality', 'proportion_group_locality_b',
     'group_entropy', 'group_proportion_city', 'total_population'))
-
 
 # nocov end
 

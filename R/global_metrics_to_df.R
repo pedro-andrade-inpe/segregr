@@ -12,7 +12,6 @@
 #' segregation <- segregr::measure_segregation(marilia_sf)
 #' df <- segregr::global_metrics_to_df(segregation)
 global_metrics_to_df <- function(segregation_results, bandwidths = c()) {
-
   # prepare global results data.frame ----------------------------------------
   # exposure / isolation
   segreg_iso <- segregation_results$Q %>%

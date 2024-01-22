@@ -9,6 +9,7 @@
 #' @export
 #'
 #' @examples
+#' require(tmap)
 #' # load sample data from package segregr
 #' marilia_sf <- sf::st_read(system.file("extdata/marilia_2010.gpkg", package = "segregr"))
 #'
@@ -19,13 +20,12 @@
 #' dissimilarity <- segregr::dissimilarity_to_sf(segregation)
 #'
 #' # plot local dissimilarity
-#' ##ggplot(data = dissimilarity) +
-#'##   geom_sf(aes(fill = dissimilarity)) +
-#'##   scale_fill_distiller(palette = "Spectral")
+#' tm_shape(dissimilarity) +
+#'   tm_polygons("dissimilarity", n = 3) +
+#'   tm_layout(legend.position=c(0.1,0.1), scale = 0.5)
 dissimilarity_to_sf <- function(segregation_results, bandwidths = c()) {
-
   result <- segregation_results$areal_units %>%
-    dplyr::left_join(segregation_results$d, by = c("id")) %>%
+    dplyr::left_join(segregation_results$d, by = "id") %>%
     dplyr::select(id, bw, dissimilarity = d)
 
   if (length(bandwidths) != 0) {
